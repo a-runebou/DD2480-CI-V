@@ -41,8 +41,8 @@ public class StatusPosterTest {
     /**
      * Contract:
      * The postStatus function shall post a new commit status to the github API, and receive a response
-     * with status code 201 if everything went correctly, or different if an error occured. If status
-     * code is different from 201, the function shall throw RuntimeException.
+     * with status code in the range of 200-299 if everything went correctly, or different if an error occured. If status
+     * code is different, the function shall throw RuntimeException.
      * 
      * Expected behavior:
      * Given wrong SHA of a non-existing commit, the function shall throw RuntimeException.
@@ -59,8 +59,8 @@ public class StatusPosterTest {
     /**
      * Contract:
      * The postStatus function shall post a new commit status to the github API, and receive a response
-     * with status code 201 if everything went correctly, or different if an error occured. If status
-     * code is different from 201, the function shall throw RuntimeException.
+     * with status code in the range of 200-299 if everything went correctly, or different if an error occured. If status
+     * code is different, the function shall throw RuntimeException.
      * 
      * Expected behavior:
      * Given a valid SHA of an existing commit, the function shall complete without throwing exceptions.
