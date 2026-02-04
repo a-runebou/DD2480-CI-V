@@ -24,7 +24,7 @@ public class ServerTest {
     public void setUp() throws Exception {
         server = new Server();
         server.start();
-        port = 1111;
+        port = 2480 + 5;
     }
 
     @AfterEach

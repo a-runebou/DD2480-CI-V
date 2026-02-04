@@ -2,18 +2,22 @@ package com.ci;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import com.fasterxml.jackson.databind.JsonNode;;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Server {
     private HttpServer server;
     private int port;
-    private boolean DEBUG = true;
+    private static boolean DEBUG = true;
 
     public Server() {
         this.server = null;
-        this.port = 1111; // Default port
+        this.port = 2480 + 5; // Default port
     }
 
     /** 
@@ -47,24 +51,85 @@ public class Server {
      * @throws IOException if an I/O error occurs.
      */
     public static void handleRequest(HttpExchange exchange) throws IOException {
-        System.out.println("Handling request...");
+        if (DEBUG) {
+            System.out.println("Handling request...");
+        }
         
         // Only accept POST requests
         if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
             // Process the webhook payload
-            System.out.println("Received POST request");
+            if (DEBUG) {
+                System.out.println("Received POST request");
+            }
 
-            System.out.println("Request Headers: " + exchange.getRequestHeaders().toString());
-            System.out.println("Request Body: " + new String(exchange.getRequestBody().readAllBytes()));
+            // Read the request body
+            String body = new String(exchange.getRequestBody().readAllBytes());
+
+            if (body.isBlank()) {
+                if (DEBUG) {
+                    System.out.println("Empty request body received");
+                }
+                String response = "Empty request body";
+                byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(400, responseBytes.length);
+                exchange.getResponseBody().write(responseBytes);
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            if (DEBUG) {
+                System.out.println("Request Body: " + body);
+            }
+            
+            // Parse JSON payload
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode json;
+            try {
+                json = objectMapper.readTree(body);
+            } catch (IOException e) {
+                if (DEBUG) {
+                    System.out.println("Failed to parse JSON payload");
+                }
+                String response = "Invalid JSON payload";
+                byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(400, responseBytes.length);
+                exchange.getResponseBody().write(responseBytes);
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            // Validate JSON structure
+            if (!json.has("ref") || !json.has("after")) {
+                String response = "Missing required fields";
+                byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(400, responseBytes.length);
+                exchange.getResponseBody().write(responseBytes);
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            // Get branch reference and SHA
+            String ref = json.get("ref").asText();
+            String sha = json.get("after").asText();
+            String branch = ref.replace("refs/heads/", "");
+
+            if (DEBUG) {
+                System.out.println("Branch: " + branch);
+                System.out.println("Commit SHA: " + sha);
+            }
+
 
             // Send a 200 OK response
-            String response = "Webhook received";
-            exchange.sendResponseHeaders(200, response.length());
-            exchange.getResponseBody().write(response.getBytes());
+            String response = "Webhook parsed successfully";
+            byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, responseBytes.length);
+            exchange.getResponseBody().write(responseBytes);
         } else {
             // Send a 405 Method Not Allowed response
             String response = "Method Not Allowed";
-            exchange.sendResponseHeaders(405, response.length());
+            byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(405, responseBytes.length);
+            exchange.getResponseBody().write(responseBytes);
         }
         exchange.getResponseBody().close();
     }
