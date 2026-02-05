@@ -114,4 +114,36 @@ public class ServerTest {
         int responseCode = connection.getResponseCode();
         assertEquals(404, responseCode);
     }
+
+    @Test
+    public void testEmptyBodyReturns400() throws Exception {
+        URL url = new URL("http://localhost:" + port + "/webhook");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+
+        connection.getOutputStream().close();
+
+        assertEquals(400, connection.getResponseCode());
+    }
+
+    @Test
+    public void testMissingCloneUrlReturns400() throws Exception {
+        String payload = """
+            {"ref":"refs/heads/main","after":"abc123","repository":{}}
+            """;
+
+        URL url = new URL("http://localhost:" + port + "/webhook");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.getOutputStream().write(payload.getBytes());
+        connection.getOutputStream().close();
+
+        assertEquals(400, connection.getResponseCode());
+    }
+
+
 }
+
+    
