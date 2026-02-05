@@ -17,7 +17,7 @@ public class ServerTest {
     private Server server;
     private HttpServer httpServer;
     private int port;
-    private static String VALID_PAYLOAD = """
+    private static final String VALID_PAYLOAD = """
         {
             "ref": "refs/heads/main",
             "after": "abc123",
@@ -26,7 +26,16 @@ public class ServerTest {
             }
         }
         """;
-    private static String INVALID_PAYLOAD = "{ \"reff\": \"refs/heads/main\", \"after\": \"abc123\" }";
+    private static final String INVALID_PAYLOAD = """
+    {
+        "reff": "refs/heads/main",
+        "after": "abc123",
+        "repository": {
+            "clone_url": "https://github.com/test/repo.git"
+        }
+    }
+    """;
+
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -71,7 +80,7 @@ public class ServerTest {
      * The server rejects the invalid payload and returns a 400 response.
      */
     @Test
-    public void testWebhookPostWithInvalidPayloadReturns400() throws Exception {
+    public void testWebhookPostMissingRefReturns400() throws Exception {
         URL url = new URL("http://localhost:" + port + "/webhook");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
@@ -80,7 +89,7 @@ public class ServerTest {
         int responseCode = connection.getResponseCode();
         assertEquals(400, responseCode);
     }
-
+    
     /**
      * Contract:
      * When a non-POST request is sent to /webhook, the server should respond
