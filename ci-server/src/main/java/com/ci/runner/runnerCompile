@@ -1,0 +1,71 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class CompileRunner {
+
+    public static final class Result {
+        public final int exitCode;
+        public final String outputMessage;
+        public final String errorMessage;
+
+        public Result(int exitCode, String outputMessage, String errorMessage) {
+            this.exitCode = exitCode;
+            this.outputMessage = outputMessage;
+            this.errorMessage = errorMessage;
+        }
+    }
+
+    public static Result runMvnwCompile(File repoDir) throws IOException, InterruptedException {
+        if (repoDir == null || !repoDir.isDirectory()) {
+            throw new IllegalArgumentException("repoDir must be an existing directory");
+        }
+
+        ProcessBuilder pb = new ProcessBuilder("./mvnw", "compile");
+        pb.directory(repoDir);
+
+        Process p = pb.start();
+
+        String outputMessage = readAll(p.getInputStream());
+        String errorMessage = readAll(p.getErrorStream());
+
+        int exit = p.waitFor();
+
+        return new Result(exit, outputMessage, errorMessage);
+    }
+
+    private static String readAll(java.io.InputStream in) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        }
+        return sb.toString();
+    }   
+
+    public static void main(String[] args) {
+        File repo = new File("PATH/TO//REPO");
+
+        try {
+            Result r = runMvnwCompile(repo);
+
+            System.out.println("=== mvnw compile exit code: " + r.exitCode + " ===");
+            System.out.println("----- STDOUT -----");
+            System.out.print(r.outputMessage);
+
+            System.out.println("----- STDERR -----");
+            System.out.print(r.errorMessage);
+
+            if (r.exitCode != 0) {
+                System.out.println("Compilation failed");
+            } else {
+                System.out.println("Compilation succeeded.");
+            }
+        } catch (Exception error) {
+            error.printStackTrace();
+        }
+    }
+}
