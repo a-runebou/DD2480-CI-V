@@ -115,6 +115,14 @@ public class ServerTest {
         assertEquals(404, responseCode);
     }
 
+    /**
+     * Contract:
+     * When a POST request is sent to /webhook with an empty body,
+     * the server shall respond with 400 Bad Request.
+     * 
+     * Expected behavior:
+     * The server rejects the request with no payload and returns a 400 response.
+     */
     @Test
     public void testEmptyBodyReturns400() throws Exception {
         URL url = new URL("http://localhost:" + port + "/webhook");
@@ -127,6 +135,15 @@ public class ServerTest {
         assertEquals(400, connection.getResponseCode());
     }
 
+    /**
+     * Contract:
+     * When a POST request is sent to /webhook with a JSON payload that is missing
+     * the required repository.clone_url field, the server shall respond with 400 Bad Request.
+     * 
+     * Expected behavior:
+     * The server validates the payload structure and rejects requests missing clone_url,
+     * returning a 400 response.
+     */
     @Test
     public void testMissingCloneUrlReturns400() throws Exception {
         String payload = """
@@ -145,5 +162,3 @@ public class ServerTest {
 
 
 }
-
-    
