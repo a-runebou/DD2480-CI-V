@@ -5,10 +5,13 @@ import java.io.InputStreamReader;
 
 public class CompileRunner {
 
+    /**
+     * Result object holding the outcome of a Maven compile run.
+     */
     public static final class Result {
-        public final int exitCode;
-        public final String outputMessage;
-        public final String errorMessage;
+        public final int exitCode;          // Process exit code
+        public final String outputMessage;  // Standard output from Maven
+        public final String errorMessage;   // Error output from Maven
 
         public Result(int exitCode, String outputMessage, String errorMessage) {
             this.exitCode = exitCode;
@@ -17,49 +20,71 @@ public class CompileRunner {
         }
     }
 
-    public static Result runMvnwCompile(File repoDir) throws IOException, InterruptedException {
+    /**
+     * Executes "./mvnw compile" in the given repository directory.
+     *
+     * @param repoDir directory containing the Maven project
+     * @return Result containing exit code and process output
+     */
+    public static Result runMvnwCompile(File repoDir)
+            throws IOException, InterruptedException {
+
         if (repoDir == null || !repoDir.isDirectory()) {
             throw new IllegalArgumentException("repoDir must be an existing directory");
         }
 
+        // Create a process that runs the Maven compile
         ProcessBuilder pb = new ProcessBuilder("./mvnw", "compile");
         pb.directory(repoDir);
 
-        Process p = pb.start();
+        Process process = pb.start();
 
-        String outputMessage = readAll(p.getInputStream());
-        String errorMessage = readAll(p.getErrorStream());
+        // Read standard output and error output from the process
+        String outputMessage = readAll(process.getInputStream());
+        String errorMessage = readAll(process.getErrorStream());
 
-        int exit = p.waitFor();
+        int exitCode = process.waitFor();
 
-        return new Result(exit, outputMessage, errorMessage);
+        return new Result(exitCode, outputMessage, errorMessage);
     }
 
-    private static String readAll(java.io.InputStream in) throws IOException {
+    /**
+     * Reads all text from an InputStream and returns it as a String.
+     */
+    private static String readAll(java.io.InputStream inputStream) throws IOException {
         StringBuilder sb = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+
+        // Wrap InputStream to read text line by line
+        try (BufferedReader br =
+                     new BufferedReader(new InputStreamReader(inputStream))) {
+
             String line;
             while ((line = br.readLine()) != null) {
                 sb.append(line).append("\n");
             }
         }
-        return sb.toString();
-    }   
 
+        return sb.toString();
+    }
+
+    /**
+     * Temporary main method for local testing without the CI server.
+     */
     public static void main(String[] args) {
-        File repo = new File("PATH/TO//REPO");
+        // Replace with the path to a Maven repository to test locally
+        File repo = new File("PATH/TO/YOUR/REPO");
 
         try {
-            Result r = runMvnwCompile(repo);
+            Result result = runMvnwCompile(repo);
 
-            System.out.println("=== mvnw compile exit code: " + r.exitCode + " ===");
+            System.out.println("=== mvnw compile exit code: " + result.exitCode + " ===");
             System.out.println("----- STDOUT -----");
-            System.out.print(r.outputMessage);
+            System.out.print(result.outputMessage);
 
             System.out.println("----- STDERR -----");
-            System.out.print(r.errorMessage);
+            System.out.print(result.errorMessage);
 
-            if (r.exitCode != 0) {
+            if (result.exitCode != 0) {
                 System.out.println("Compilation failed");
             } else {
                 System.out.println("Compilation succeeded.");
