@@ -21,3 +21,5 @@ ci-server/src/main/resources/token.config
 
 # database files
 ci-server/data
+
+*.db
