@@ -17,7 +17,15 @@ public class ServerTest {
     private Server server;
     private HttpServer httpServer;
     private int port;
-    private static String VALID_PAYLOAD = "{ \"ref\": \"refs/heads/main\", \"after\": \"abc123\" }";
+    private static String VALID_PAYLOAD = """
+        {
+            "ref": "refs/heads/main",
+            "after": "abc123",
+            "repository": {
+                "clone_url": "https://github.com/test/repo.git"
+            }
+        }
+        """;
     private static String INVALID_PAYLOAD = "{ \"reff\": \"refs/heads/main\", \"after\": \"abc123\" }";
 
     @BeforeEach
