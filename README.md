@@ -20,6 +20,26 @@ Maven version 3.9.12 was used locally, but this project uses Maven Wrapper meani
 ./mvnw exec:java
 ```
 
+## Local Setup with ngrok
+To test the CI server locally with GitHub webhooks, you can use [ngrok](https://ngrok.com/) to expose your local server to the internet.
+1. Download and install ngrok from the [official website](https://ngrok.com/download).
+2. Start your CI server locally by running:
+   ```bash
+   ./mvnw exec:java
+   ```
+3. In a separate terminal, run ngrok to expose your local server (assuming your CI server runs on port `2485` as per default):
+   ```bash
+    ngrok http 2485
+    ```
+4. ngrok will provide you with a public URL (e.g., `https://<random-id>.ngrok-free.app`). Use this URL to configure your GitHub webhook.
+5. In your GitHub repository, go to **Settings** > **Webhooks** > **Add webhook**.
+   - Set the **Payload URL** to your ngrok URL (e.g., `https://<random-id>.ngrok-free.app/webhook`).
+   - Set the **Content type** to `application/json`.
+   - Disable **SSL verification**.
+   - Choose **Just the push event** as the events you want to trigger the webhook.
+   - Make sure the webhook is **Active**.
+   - Click **Add webhook** to save.
+6. Now, when you push changes to the GitHub repository, GitHub will send a webhook to your local CI server via ngrok, which triggers the pipeline.
 
 ## Notification of CI results
 The notification of results was implemented using **commit statuses** via the GitHub REST API.
