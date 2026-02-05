@@ -56,4 +56,107 @@ public class GitCheckoutServiceTest {
                     catch (IOException ignored) {}
                 });
     }
+
+    /**
+     * Test: checkout() clones a public repository and creates expected files.
+     * Uses a small public repo to minimize network overhead.
+     */
+    @Test
+    void checkoutClonesPublicRepo() throws Exception {
+        Assumptions.assumeTrue(isGitAvailable(), "Git not available, skipping test");
+
+        GitCheckoutService svc = new GitCheckoutService();
+        Path workDir = null;
+
+        try {
+            // Clone a small, stable public repo
+            workDir = svc.checkout(
+                "https://github.com/octocat/Hello-World.git",
+                "master",
+                null
+            );
+
+            // Verify directory was created
+            assertNotNull(workDir);
+            assertTrue(Files.exists(workDir), "Work directory should exist");
+            assertTrue(Files.isDirectory(workDir), "Work directory should be a directory");
+
+            // Verify .git folder exists (confirms successful clone)
+            assertTrue(Files.exists(workDir.resolve(".git")), ".git folder should exist");
+
+            // Verify README exists in Hello-World repo
+            assertTrue(Files.exists(workDir.resolve("README")), "README should exist");
+
+        } finally {
+            deleteRecursively(workDir);
+        }
+    }
+
+    /**
+     * Test: checkout() can checkout a specific commit SHA.
+     */
+    @Test
+    void checkoutSpecificCommit() throws Exception {
+        Assumptions.assumeTrue(isGitAvailable(), "Git not available, skipping test");
+
+        GitCheckoutService svc = new GitCheckoutService();
+        Path workDir = null;
+
+        try {
+            // Clone and checkout a specific known commit from Hello-World
+            String knownSha = "7fd1a60b01f91b314f59955a4e4d4e80d8edf11d";
+            workDir = svc.checkout(
+                "https://github.com/octocat/Hello-World.git",
+                "master",
+                knownSha
+            );
+
+            // Verify checkout succeeded
+            assertNotNull(workDir);
+            assertTrue(Files.exists(workDir.resolve(".git")), ".git folder should exist");
+
+            // Verify we're at the correct commit
+            String currentSha = run(List.of("git", "rev-parse", "HEAD"), workDir).trim();
+            assertEquals(knownSha, currentSha, "Should be at the specified commit");
+
+        } finally {
+            deleteRecursively(workDir);
+        }
+    }
+
+    /**
+     * Test: checkout() throws exception for invalid repository URL.
+     */
+    @Test
+    void checkoutInvalidRepoThrows() {
+        Assumptions.assumeTrue(isGitAvailable(), "Git not available, skipping test");
+
+        GitCheckoutService svc = new GitCheckoutService();
+
+        assertThrows(RuntimeException.class, () -> {
+            svc.checkout(
+                "https://github.com/somenonexistent/repo-that-does-not-exist-lol.git",
+                "main",
+                null
+            );
+        });
+    }
+
+    /**
+     * Test: checkout() throws exception for invalid branch.
+     */
+    @Test
+    void checkoutInvalidBranchThrows() {
+        Assumptions.assumeTrue(isGitAvailable(), "Git not available, skipping test");
+
+        GitCheckoutService svc = new GitCheckoutService();
+
+        assertThrows(RuntimeException.class, () -> {
+            svc.checkout(
+                "https://github.com/octocat/Hello-World.git",
+                "nonexistent-random;branch-lol",
+                null
+            );
+        });
+    }
 }
