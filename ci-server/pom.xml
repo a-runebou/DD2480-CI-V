@@ -51,6 +51,7 @@
           <plugin>
               <groupId>org.graalvm.buildtools</groupId>
               <artifactId>native-maven-plugin</artifactId>
+              <version>0.11.4</version>
               <configuration>
                 <buildArgs>
                     <buildArg>-Dorg.sqlite.lib.exportPath=${project.build.directory}</buildArg>
