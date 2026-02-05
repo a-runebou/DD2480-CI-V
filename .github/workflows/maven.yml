@@ -31,7 +31,12 @@ jobs:
       - name: Create token.config for tests
         run: |
           mkdir -p ci-server/src/test/resources
-          printf "%s" "${{ secrets.STATUS_POSTER_TOKEN }}" > ci-server/src/test/resources/token.config
+          cat > ci-server/src/test/resources/token.config <<EOF
+          owner=${{ github.repository_owner }}
+          repo=${{ github.event.repository.name }}
+          token=${{ secrets.API_TOKEN }}
+          EOF
+
 
       - name: Build + Test
         run: mvn -B clean test --file ci-server/pom.xml
