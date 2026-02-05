@@ -22,7 +22,7 @@ public class DbHandler {
     }
     public DbHandler(Boolean test) {
         if (test) {
-            dbUrl = "jdbc:sqlite:data/test.db";
+            dbUrl = "jdbc:sqlite:test.db";
         }
         try {
             connection = DriverManager.getConnection(dbUrl);
