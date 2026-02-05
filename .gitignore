@@ -18,3 +18,6 @@ buildNumber.properties
 
 # token config file
 ci-server/src/main/resources/token.config
+
+# database files
+ci-server/data
