@@ -50,6 +50,13 @@ public class DbHandlerTest {
         });
     }
 
+    /**
+     * Contract:
+     * Inserting two different entries and retrieving them shall result in a list of length 2.
+     * 
+     * Expected behavior:
+     * After inserting two different entries, selecting all entries shall return a list of length 2
+     */
     @Test
     void insertTwoValuesAndGetAllShouldHaveLengthOf2() {
         DbHandler dbHandler = new DbHandler(true);
@@ -66,6 +73,13 @@ public class DbHandlerTest {
         assertTrue(result.size() == 2);
     }
 
+    /**
+     * Contract:
+     * Updating an existing entry based on the commit SHA shall complete without throwing exceptions.
+     * 
+     * Expected behavior:
+     * Given an existing entry in the database, updating it shall complete without throwing exceptions.
+     */
     @Test
     void updateDoesNotThrow() {
         DbHandler dbHandler = new DbHandler(true);

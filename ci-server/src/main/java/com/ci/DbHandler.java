@@ -31,6 +31,10 @@ public class DbHandler {
         }
     }
 
+    /**
+     * Craetes a table in the database.
+     * @throws SQLException
+     */
     public void createBuildTable() throws SQLException {
         Statement stm = connection.createStatement();
         String sqlCreate = "CREATE TABLE IF NOT EXISTS builds (" +
@@ -54,7 +58,7 @@ public class DbHandler {
      * @param branch related branch
      * @param result the result of the build/test
      * @param description additional description
-     * @param date the date (if not supplied, current date is used)
+     * @param date the date and time
      * @throws SQLException
      */
     public void addEntry(String sha, String branch, String result, String description, String date) throws SQLException {
@@ -64,7 +68,15 @@ public class DbHandler {
         stm.executeUpdate(sqlInsert);
         stm.close();
     }
-
+    /**
+     * Inserts a value into the dataset. Automatically sets the date and time to current time.
+     * 
+     * @param sha sha of the commit/pull request
+     * @param branch related branch
+     * @param result the result of the build/test
+     * @param description additional description
+     * @throws SQLException
+     */
     public void addEntry(String sha, String branch, String result, String description) throws SQLException {
         Statement stm = connection.createStatement();
         String sqlInsert = "INSERT INTO builds (sha, branch, build_result, build_description, build_date) VALUES ('"+
@@ -72,7 +84,14 @@ public class DbHandler {
         stm.executeUpdate(sqlInsert);
         stm.close();
     }
-
+    /**
+     * Inserts a value into the dataset. Automatically sets the date and time to current time.
+     * 
+     * @param sha sha of the commit/pull request
+     * @param branch related branch
+     * @param result the result of the build/test
+     * @throws SQLException
+     */
     public void addEntry(String sha, String branch, String result) throws SQLException {
         addEntry(sha, branch, result, ""); 
     }
@@ -80,6 +99,7 @@ public class DbHandler {
     /**
      * Applies the SQL SELECT Statement
      * @param sqlSelect
+     * @return a list of entries satisfying the given statement
      */
     public List<BuildEntry> selectBuild(String sqlSelect) {
         List<BuildEntry> builds = new ArrayList<BuildEntry>();
