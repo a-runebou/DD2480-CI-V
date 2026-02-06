@@ -80,7 +80,6 @@ public class StatusPoster {
                 .build();
         
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("GitHub API response code: " + response.statusCode());
         if (response.statusCode()<200 || response.statusCode() >= 300) { // 200 - OK, 201 - status created
             throw new RuntimeException("Failed to create commit status, code "+response.statusCode() + ": "+response.body());
         } 
