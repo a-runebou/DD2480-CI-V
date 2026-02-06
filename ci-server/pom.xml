@@ -21,6 +21,12 @@
             <version>6.1.0-M1</version>
             <scope>test</scope>
       </dependency>
+      <!-- SQLite database -->
+      <dependency>
+        <groupId>org.xerial</groupId>
+        <artifactId>sqlite-jdbc</artifactId>
+        <version>3.51.1.0</version>
+    </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -47,6 +53,17 @@
                   <mainClass>com.ci.App</mainClass>
               </configuration>
           </plugin>
+          <!-- SQLite -->
+          <plugin>
+              <groupId>org.graalvm.buildtools</groupId>
+              <artifactId>native-maven-plugin</artifactId>
+              <version>0.11.4</version>
+              <configuration>
+                <buildArgs>
+                    <buildArg>-Dorg.sqlite.lib.exportPath=${project.build.directory}</buildArg>
+                </buildArgs>
+              </configuration>
+           </plugin>
 
           <!-- Code Coverage -->
           <plugin>
