@@ -4,16 +4,23 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.ci.checkout.GitCheckoutService;
+
 public class Server {
     private HttpServer server;
     private int port;
     private static boolean DEBUG = true;
+
+    private static final ExecutorService EXEC = Executors.newFixedThreadPool(2);
 
     public Server() {
         this.server = null;
@@ -118,6 +125,31 @@ public class Server {
                 System.out.println("Commit SHA: " + sha);
             }
 
+            // Get repo clone URL from payload
+            JsonNode repoNode = json.get("repository");
+            if (repoNode == null || !repoNode.has("clone_url")) {
+                String response = "Missing repository.clone_url";
+                byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(400, responseBytes.length);
+                exchange.getResponseBody().write(responseBytes);
+                exchange.getResponseBody().close();
+                return;
+            }
+            String repoUrl = repoNode.get("clone_url").asText();
+
+            EXEC.submit(() -> {
+                try {
+                    GitCheckoutService checkout = new GitCheckoutService();
+                    var dir = checkout.checkout(repoUrl, branch, sha);
+                    System.out.println("[CI] Checked out into: " + dir);
+
+                    // TODO: run mvn compile/test inside dir
+                    // TODO: post status using StatusPoster
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
 
             // Send a 200 OK response
             String response = "Webhook parsed successfully";
