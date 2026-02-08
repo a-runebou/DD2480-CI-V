@@ -13,7 +13,8 @@ import com.sun.net.httpserver.HttpServer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.ci.checkout.GitCheckoutService;
+import com.ci.pipeline.CIPipeline;
+import com.ci.statuses.StatusPosterAdapter;
 
 public class Server {
     private HttpServer server;
@@ -21,6 +22,7 @@ public class Server {
     private static boolean DEBUG = true;
 
     private static final ExecutorService EXEC = Executors.newFixedThreadPool(2);
+    private static final CIPipeline PIPELINE = new CIPipeline(new StatusPosterAdapter());
 
     public Server() {
         this.server = null;
@@ -139,13 +141,7 @@ public class Server {
 
             EXEC.submit(() -> {
                 try {
-                    GitCheckoutService checkout = new GitCheckoutService();
-                    var dir = checkout.checkout(repoUrl, branch, sha);
-                    System.out.println("[CI] Checked out into: " + dir);
-
-                    // TODO: run mvn compile/test inside dir
-                    // TODO: post status using StatusPoster
-
+                    PIPELINE.run(repoUrl, branch, sha);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
