@@ -1,7 +1,9 @@
 package com.ci;
 
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
 
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,6 +19,8 @@ public class ServerTest {
     private Server server;
     private HttpServer httpServer;
     private int port;
+    private String dbUrl;
+    private File tempDbFile;
     private static final String VALID_PAYLOAD = """
         {
             "ref": "refs/heads/main",
@@ -39,7 +43,10 @@ public class ServerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        server = new Server();
+        tempDbFile = Files.createTempFile("testdb", ".db").toFile();
+        dbUrl = "jdbc:sqlite:" + tempDbFile.getAbsolutePath();
+        // Initialize the database with test data 
+        server = new Server(dbUrl);
         server.start();
         port = 2480 + 5;
     }
@@ -48,6 +55,9 @@ public class ServerTest {
     public void tearDown() throws Exception {
         if (server != null) {
             server.stop();
+        }
+        if (tempDbFile != null && tempDbFile.exists()) {
+            tempDbFile.delete();
         }
     }
 
