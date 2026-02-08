@@ -10,12 +10,20 @@ public class CIPipeline {
     private final CommandRunner runner;
     private final StatusReporter statusReporter;
 
+    /**
+     * Prefer using this constructor from Server (composition root):
+     * new CIPipeline(new GitCheckoutService(), new CommandRunner(), realStatusReporter)
+     */
     public CIPipeline(GitCheckoutService checkoutService, CommandRunner runner, StatusReporter statusReporter) {
         this.checkoutService = checkoutService;
         this.runner = runner;
         this.statusReporter = statusReporter;
     }
 
+    /**
+     * Convenience constructor: uses default checkout + runner,
+     * but you MUST provide a StatusReporter.
+     */
     public CIPipeline(StatusReporter statusReporter) {
         this(new GitCheckoutService(), new CommandRunner(), statusReporter);
     }
@@ -26,10 +34,16 @@ public class CIPipeline {
         Path dir = null;
         try {
             safePending(sha, "CI running");
+
+            System.out.println("[CI] CHECKOUT");
             dir = checkoutService.checkout(repoUrl, branch, sha);
+            System.out.println("[CI] CHECKOUT OK dir=" + dir);
+
+            System.out.println("[CI] TEST");
 
             int exit;
             Path mvnw = dir.resolve("mvnw");
+
             if (Files.exists(mvnw)) {
                 runner.run(dir, "chmod", "+x", "mvnw");
                 exit = runner.run(dir, "./mvnw", "test");
@@ -41,9 +55,15 @@ public class CIPipeline {
             else safeFailure(sha, "CI failed (exit=" + exit + ")");
 
         } catch (Exception e) {
-            System.out.println("[CI] ERROR " + e.getMessage());
+            String msg = (e.getMessage() == null) ? e.getClass().getSimpleName() : e.getMessage();
+            System.out.println("[CI] ERROR " + msg);
             e.printStackTrace();
+            safeError(sha, "CI error: " + msg);
         } finally {
+            if (dir != null) {
+                System.out.println("[CI] CLEANUP " + dir);
+                runner.deleteRecursively(dir);
+            }
             System.out.println("[CI] END branch=" + branch + " sha=" + shortSha(sha));
         }
     }
@@ -53,6 +73,7 @@ public class CIPipeline {
         return sha.length() < 7 ? sha : sha.substring(0, 7);
     }
 
+    // status helpers that don’t let status posting break CI execution
     private void safePending(String sha, String msg) {
         if (statusReporter == null || sha == null) return;
         try { statusReporter.pending(sha, msg); } catch (Exception ignored) {}
@@ -67,4 +88,10 @@ public class CIPipeline {
         if (statusReporter == null || sha == null) return;
         try { statusReporter.failure(sha, msg); } catch (Exception ignored) {}
     }
+
+    private void safeError(String sha, String msg) {
+        if (statusReporter == null || sha == null) return;
+        try { statusReporter.error(sha, msg); } catch (Exception ignored) {}
+    }
 }
+
