@@ -11,16 +11,21 @@ import com.sun.net.httpserver.HttpHandler;
 
 public class AllBuildsHandler implements HttpHandler{
     private static ObjectMapper objectMapper = new ObjectMapper();
-
+    private DbHandler dbHandler;
+    public AllBuildsHandler(DbHandler dbHandler) {
+        this.dbHandler = dbHandler;
+    }
+    /**
+     * Handles incoming HTTP GET requests to retrieve all build entries.
+     * Responds with a JSON array of all build entries.
+     */
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
             exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             return;
         }
-
-        DbHandler handler = new DbHandler();
-        List<BuildEntry> builds = handler.selectAllBuilds();
+        List<BuildEntry> builds = dbHandler.selectAllBuilds();
         String response = objectMapper.writeValueAsString(builds);
 
         exchange.getResponseHeaders().set("Content-Type", "application/json");

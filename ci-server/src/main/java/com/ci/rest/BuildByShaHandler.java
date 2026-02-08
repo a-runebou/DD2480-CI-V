@@ -10,7 +10,16 @@ import com.sun.net.httpserver.HttpHandler;
 
 public class BuildByShaHandler implements HttpHandler {
     private static ObjectMapper objectMapper = new ObjectMapper();
+    private DbHandler dbHandler;
+    public BuildByShaHandler(DbHandler dbHandler) {
+        this.dbHandler = dbHandler;
+    }
 
+    /**
+     * Handles incoming HTTP GET requests to retrieve build information by SHA.
+     * Expects the request path to be in the format /builds/{sha}, where {sha} is the commit SHA.
+     * Responds with a JSON object containing the build information for the specified SHA.
+     */
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
@@ -25,8 +34,7 @@ public class BuildByShaHandler implements HttpHandler {
             return;
         }
         String sha = segments[2];
-        DbHandler handler = new DbHandler();
-        BuildEntry build = handler.selectBySha(sha);
+        BuildEntry build = dbHandler.selectBySha(sha);
         if (build == null) {
             exchange.sendResponseHeaders(404, -1); // Not Found
             return;
