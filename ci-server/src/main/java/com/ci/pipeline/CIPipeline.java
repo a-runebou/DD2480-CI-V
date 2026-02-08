@@ -2,6 +2,7 @@ package com.ci.pipeline;
 
 import com.ci.checkout.GitCheckoutService;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CIPipeline {
@@ -27,7 +28,15 @@ public class CIPipeline {
             safePending(sha, "CI running");
             dir = checkoutService.checkout(repoUrl, branch, sha);
 
-            int exit = runner.run(dir, "mvn", "test");
+            int exit;
+            Path mvnw = dir.resolve("mvnw");
+            if (Files.exists(mvnw)) {
+                runner.run(dir, "chmod", "+x", "mvnw");
+                exit = runner.run(dir, "./mvnw", "test");
+            } else {
+                exit = runner.run(dir, "mvn", "test");
+            }
+
             if (exit == 0) safeSuccess(sha, "CI passed");
             else safeFailure(sha, "CI failed (exit=" + exit + ")");
 
