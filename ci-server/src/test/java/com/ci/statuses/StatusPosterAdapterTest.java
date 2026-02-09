@@ -24,7 +24,11 @@ public class StatusPosterAdapterTest {
     }
 
     /**
-     * When pending() is called, adapter posts "pending" state to StatusPoster.
+     * Contract:
+     * The adapter shall delegate pending() calls to StatusPoster.postStatus() with "pending" state.
+     * 
+     * Expected behavior:
+     * Given a SHA and description, the adapter posts to StatusPoster with state="pending".
      */
     @Test
     void pending_postsCorrectState() throws Exception {
@@ -37,7 +41,11 @@ public class StatusPosterAdapterTest {
     }
 
     /**
-     * When success() is called, adapter posts "success" state to StatusPoster.
+     * Contract:
+     * The adapter shall delegate success() calls to StatusPoster.postStatus() with "success" state.
+     * 
+     * Expected behavior:
+     * Given a SHA and description, the adapter posts to StatusPoster with state="success".
      */
     @Test
     void success_postsCorrectState() throws Exception {
@@ -48,7 +56,11 @@ public class StatusPosterAdapterTest {
     }
 
     /**
-     * When failure() is called, adapter posts "failure" state to StatusPoster.
+     * Contract:
+     * The adapter shall delegate failure() calls to StatusPoster.postStatus() with "failure" state.
+     * 
+     * Expected behavior:
+     * Given a SHA and description, the adapter posts to StatusPoster with state="failure".
      */
     @Test
     void failure_postsCorrectState() throws Exception {
@@ -59,7 +71,11 @@ public class StatusPosterAdapterTest {
     }
 
     /**
-     * When error() is called, adapter posts "error" state to StatusPoster.
+     * Contract:
+     * The adapter shall delegate error() calls to StatusPoster.postStatus() with "error" state.
+     * 
+     * Expected behavior:
+     * Given a SHA and description, the adapter posts to StatusPoster with state="error".
      */
     @Test
     void error_postsCorrectState() throws Exception {
