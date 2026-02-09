@@ -1,3 +1,5 @@
+package com.ci;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -65,32 +67,5 @@ public class CompileRunner {
         }
 
         return sb.toString();
-    }
-
-    /**
-     * Temporary main method for local testing without the CI server.
-     */
-    public static void main(String[] args) {
-        // Replace with the path to a Maven repository to test locally
-        File repo = new File("PATH/TO/YOUR/REPO");
-
-        try {
-            Result result = runMvnwCompile(repo);
-
-            System.out.println("=== mvnw compile exit code: " + result.exitCode + " ===");
-            System.out.println("----- STDOUT -----");
-            System.out.print(result.outputMessage);
-
-            System.out.println("----- STDERR -----");
-            System.out.print(result.errorMessage);
-
-            if (result.exitCode != 0) {
-                System.out.println("Compilation failed");
-            } else {
-                System.out.println("Compilation succeeded.");
-            }
-        } catch (Exception error) {
-            error.printStackTrace();
-        }
     }
 }
