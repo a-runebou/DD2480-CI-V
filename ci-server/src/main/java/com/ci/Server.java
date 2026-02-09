@@ -21,12 +21,26 @@ public class Server {
     private int port;
     private static boolean DEBUG = true;
 
-    private static final ExecutorService EXEC = Executors.newFixedThreadPool(2);
-    private static final CIPipeline PIPELINE = new CIPipeline(new StatusPosterAdapter());
+    private final ExecutorService exec;
+    private final CIPipeline pipeline;
 
+    /**
+     * Production constructor: uses real pipeline and executor.
+     */
     public Server() {
+        this(new CIPipeline(new StatusPosterAdapter()), Executors.newFixedThreadPool(2));
+    }
+
+    /**
+     * Test constructor: allows injection of mock/fake pipeline and executor.
+     * @param pipeline the CI pipeline to use for processing webhooks
+     * @param exec the executor service for running pipeline tasks
+     */
+    public Server(CIPipeline pipeline, ExecutorService exec) {
         this.server = null;
         this.port = 2480 + 5; // Default port
+        this.pipeline = pipeline;
+        this.exec = exec;
     }
 
     /** 
@@ -35,7 +49,7 @@ public class Server {
      */
     public void start() throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(this.port), 0);
-        this.server.createContext("/webhook", Server::handleRequest);
+        this.server.createContext("/webhook", exchange -> handleRequest(exchange, pipeline, exec));
         this.server.setExecutor(null);
         this.server.start();
 
@@ -52,14 +66,19 @@ public class Server {
         if (this.server != null) {
             this.server.stop(0);
         }
+        if (this.exec != null) {
+            this.exec.shutdownNow();
+        }
     }
 
     /**
      * Handles incoming HTTP requests.
      * @param exchange the HTTP exchange containing request and response data.
+     * @param pipeline the CI pipeline to run for valid webhooks.
+     * @param exec the executor service for running pipeline tasks.
      * @throws IOException if an I/O error occurs.
      */
-    public static void handleRequest(HttpExchange exchange) throws IOException {
+    public static void handleRequest(HttpExchange exchange, CIPipeline pipeline, ExecutorService exec) throws IOException {
         if (DEBUG) {
             System.out.println("Handling request...");
         }
@@ -139,9 +158,9 @@ public class Server {
             }
             String repoUrl = repoNode.get("clone_url").asText();
 
-            EXEC.submit(() -> {
+            exec.submit(() -> {
                 try {
-                    PIPELINE.run(repoUrl, branch, sha);
+                    pipeline.run(repoUrl, branch, sha);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

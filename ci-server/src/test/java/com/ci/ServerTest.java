@@ -2,21 +2,27 @@ package com.ci;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.sun.net.httpserver.HttpServer;
+import com.ci.pipeline.CIPipeline;
+import com.ci.pipeline.StatusReporter;
 
 
 public class ServerTest {
 
     
     private Server server;
-    private HttpServer httpServer;
     private int port;
+    private AtomicBoolean pipelineCalled;
+    
     private static final String VALID_PAYLOAD = """
         {
             "ref": "refs/heads/main",
@@ -36,10 +42,44 @@ public class ServerTest {
     }
     """;
 
+    /**
+     * Creates a fake StatusReporter that does nothing.
+     */
+    private static StatusReporter fakeReporter() {
+        return new StatusReporter() {
+            @Override public void pending(String sha, String desc) {}
+            @Override public void success(String sha, String desc) {}
+            @Override public void failure(String sha, String desc) {}
+            @Override public void error(String sha, String desc) {}
+        };
+    }
+
+    /**
+     * Creates a single-thread executor with daemon threads for tests.
+     * Daemon threads won't prevent JVM shutdown between tests.
+     */
+    private static ExecutorService testExecutor() {
+        return Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+        });
+    }
 
     @BeforeEach
     public void setUp() throws Exception {
-        server = new Server();
+        pipelineCalled = new AtomicBoolean(false);
+        
+        // Create a fake pipeline that just records it was called
+        CIPipeline fakePipeline = new CIPipeline(fakeReporter()) {
+            @Override
+            public void run(String repoUrl, String branch, String sha) {
+                pipelineCalled.set(true);
+                // Don't do any real work - no git clone, no maven
+            }
+        };
+        
+        server = new Server(fakePipeline, testExecutor());
         server.start();
         port = 2480 + 5;
     }
@@ -58,6 +98,7 @@ public class ServerTest {
      * 
      * Expected Behavior:
      * The server processes the POST request to /webhook and returns a 200 OK response.
+     * The pipeline should be called with the extracted parameters.
      */
     @Test
     public void testWebhookPostReturns200() throws Exception {
@@ -68,6 +109,7 @@ public class ServerTest {
         connection.getOutputStream().write(VALID_PAYLOAD.getBytes());
         int responseCode = connection.getResponseCode();
         assertEquals(200, responseCode);
+        assertTrue(pipelineCalled.get(), "Pipeline should have been called for valid webhook");
     }
 
 
