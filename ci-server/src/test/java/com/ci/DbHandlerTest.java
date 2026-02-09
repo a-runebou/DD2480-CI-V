@@ -21,7 +21,7 @@ public class DbHandlerTest {
     @BeforeEach
     void createTempDb() throws Exception {
         tempDbFile = Files.createTempFile("testdb", ".db").toFile();
-        dbUrl = "jdbc:sqlite:" + tempDbFile.getAbsolutePath();
+        dbUrl = tempDbFile.getAbsolutePath();
     }
 
     @AfterEach

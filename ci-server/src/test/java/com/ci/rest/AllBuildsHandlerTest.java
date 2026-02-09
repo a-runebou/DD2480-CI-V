@@ -22,7 +22,7 @@ public class AllBuildsHandlerTest {
     @BeforeEach
     public void setUp() throws Exception {
         tempDbFile = Files.createTempFile("testdb", ".db").toFile();
-        dbUrl = "jdbc:sqlite:" + tempDbFile.getAbsolutePath();
+        dbUrl = tempDbFile.getAbsolutePath();
         // Initialize the database with test data 
         DbHandler dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
@@ -30,8 +30,8 @@ public class AllBuildsHandlerTest {
         dbHandler.addEntry("1a25", "branch1", "success");
         dbHandler.addEntry("1a26", "branch3", "error");
         server = new Server(dbUrl);
-        server.start();
-        port = 2480 + 5;
+        server.start(0);
+        port = server.getPort();
     }
 
     @AfterEach
