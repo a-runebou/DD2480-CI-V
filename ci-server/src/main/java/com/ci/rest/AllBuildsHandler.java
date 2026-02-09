@@ -10,8 +10,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class AllBuildsHandler implements HttpHandler{
-    private static ObjectMapper objectMapper = new ObjectMapper();
-    private DbHandler dbHandler;
+    private final static ObjectMapper objectMapper = new ObjectMapper();
+    private final DbHandler dbHandler;
     public AllBuildsHandler(DbHandler dbHandler) {
         this.dbHandler = dbHandler;
     }
@@ -21,16 +21,17 @@ public class AllBuildsHandler implements HttpHandler{
      */
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
-            exchange.sendResponseHeaders(405, -1); // Method Not Allowed
-            return;
-        }
-        List<BuildEntry> builds = dbHandler.selectAllBuilds();
-        String response = objectMapper.writeValueAsString(builds);
+        try (exchange) {
+            if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+                exchange.sendResponseHeaders(405, -1); // Method Not Allowed
+                return;
+            }
+            List<BuildEntry> builds = dbHandler.selectAllBuilds();
+            String response = objectMapper.writeValueAsString(builds);
 
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        exchange.getResponseBody().write(response.getBytes());
-        exchange.close();
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+        }
     }
 }
