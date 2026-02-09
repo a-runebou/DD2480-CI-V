@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.ci.checkout.GitCheckoutService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,6 +35,8 @@ public class Server {
      */
     public Server(CIPipeline pipeline, ExecutorService exec) {
         this.server = null;
+        this.pipeline = pipeline;
+        this.exec = exec;
     }
 
     /**
@@ -52,7 +53,7 @@ public class Server {
      */
     public void start(int port) throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
-        this.server.createContext("/webhook", Server::handleRequest);
+        this.server.createContext("/webhook", exchange -> handleRequest(exchange, pipeline, exec));
         this.server.setExecutor(null);
         this.server.start();
 

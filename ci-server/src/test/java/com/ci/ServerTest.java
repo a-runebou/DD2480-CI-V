@@ -80,7 +80,7 @@ public class ServerTest {
             }
         };
         
-        server = new Server();
+        server = new Server(fakePipeline, testExecutor());
         server.start(0);
         port = server.getPort();
     }
