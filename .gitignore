@@ -16,6 +16,8 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+# Sensitive config files
+token.config
 # token config file
 ci-server/src/main/resources/token.config
 

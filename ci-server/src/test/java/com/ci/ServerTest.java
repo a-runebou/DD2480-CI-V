@@ -17,8 +17,25 @@ public class ServerTest {
     private Server server;
     private HttpServer httpServer;
     private int port;
-    private static String VALID_PAYLOAD = "{ \"ref\": \"refs/heads/main\", \"after\": \"abc123\" }";
-    private static String INVALID_PAYLOAD = "{ \"reff\": \"refs/heads/main\", \"after\": \"abc123\" }";
+    private static final String VALID_PAYLOAD = """
+        {
+            "ref": "refs/heads/main",
+            "after": "abc123",
+            "repository": {
+                "clone_url": "https://github.com/test/repo.git"
+            }
+        }
+        """;
+    private static final String INVALID_PAYLOAD = """
+    {
+        "reff": "refs/heads/main",
+        "after": "abc123",
+        "repository": {
+            "clone_url": "https://github.com/test/repo.git"
+        }
+    }
+    """;
+
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -63,7 +80,7 @@ public class ServerTest {
      * The server rejects the invalid payload and returns a 400 response.
      */
     @Test
-    public void testWebhookPostWithInvalidPayloadReturns400() throws Exception {
+    public void testWebhookPostMissingRefReturns400() throws Exception {
         URL url = new URL("http://localhost:" + port + "/webhook");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
@@ -72,7 +89,7 @@ public class ServerTest {
         int responseCode = connection.getResponseCode();
         assertEquals(400, responseCode);
     }
-
+    
     /**
      * Contract:
      * When a non-POST request is sent to /webhook, the server should respond
@@ -106,4 +123,51 @@ public class ServerTest {
         int responseCode = connection.getResponseCode();
         assertEquals(404, responseCode);
     }
+
+    /**
+     * Contract:
+     * When a POST request is sent to /webhook with an empty body,
+     * the server shall respond with 400 Bad Request.
+     * 
+     * Expected behavior:
+     * The server rejects the request with no payload and returns a 400 response.
+     */
+    @Test
+    public void testEmptyBodyReturns400() throws Exception {
+        URL url = new URL("http://localhost:" + port + "/webhook");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+
+        connection.getOutputStream().close();
+
+        assertEquals(400, connection.getResponseCode());
+    }
+
+    /**
+     * Contract:
+     * When a POST request is sent to /webhook with a JSON payload that is missing
+     * the required repository.clone_url field, the server shall respond with 400 Bad Request.
+     * 
+     * Expected behavior:
+     * The server validates the payload structure and rejects requests missing clone_url,
+     * returning a 400 response.
+     */
+    @Test
+    public void testMissingCloneUrlReturns400() throws Exception {
+        String payload = """
+            {"ref":"refs/heads/main","after":"abc123","repository":{}}
+            """;
+
+        URL url = new URL("http://localhost:" + port + "/webhook");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.getOutputStream().write(payload.getBytes());
+        connection.getOutputStream().close();
+
+        assertEquals(400, connection.getResponseCode());
+    }
+
+
 }
