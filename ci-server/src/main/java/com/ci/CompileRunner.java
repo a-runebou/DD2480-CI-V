@@ -10,6 +10,7 @@ public class CompileRunner {
     /**
      * Result object holding the outcome of a Maven compile run.
      */
+
     public static final class Result {
         public final int exitCode;          // Process exit code
         public final String outputMessage;  // Standard output from Maven
@@ -21,13 +22,13 @@ public class CompileRunner {
             this.errorMessage = errorMessage;
         }
     }
-
     /**
      * Executes "./mvnw compile" in the given repository directory.
      *
      * @param repoDir directory containing the Maven project
      * @return Result containing exit code and process output
      */
+
     public static Result runMvnwCompile(File repoDir)
             throws IOException, InterruptedException {
 
@@ -35,10 +36,8 @@ public class CompileRunner {
             throw new IllegalArgumentException("repoDir must be an existing directory");
         }
 
-        // Create a process that runs the Maven compile
-        ProcessBuilder pb = new ProcessBuilder("./mvnw", "compile");
+        ProcessBuilder pb = new ProcessBuilder(getMvnwCommand(repoDir), "compile");
         pb.directory(repoDir);
-
         Process process = pb.start();
 
         // Read standard output and error output from the process
@@ -49,23 +48,28 @@ public class CompileRunner {
 
         return new Result(exitCode, outputMessage, errorMessage);
     }
+    // Get the correct Maven command depending on operating system
+    private static String getMvnwCommand(File repoDir) {
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+        if (!isWindows) {
+            return "./mvnw";
+        } else {
+            return "mvnw.cmd";
+        }
+    }
 
     /**
      * Reads all text from an InputStream and returns it as a String.
      */
     private static String readAll(java.io.InputStream inputStream) throws IOException {
         StringBuilder sb = new StringBuilder();
-
         // Wrap InputStream to read text line by line
-        try (BufferedReader br =
-                     new BufferedReader(new InputStreamReader(inputStream))) {
-
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 sb.append(line).append("\n");
             }
         }
-
         return sb.toString();
     }
 }
