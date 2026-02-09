@@ -1,19 +1,16 @@
 package com.ci;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
-
+import com.ci.checkout.GitCheckoutService;
+import com.ci.statuses.StatusPoster;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.ci.checkout.GitCheckoutService;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
 
 public class Server {
     private HttpServer server;
@@ -142,12 +139,31 @@ public class Server {
                     GitCheckoutService checkout = new GitCheckoutService();
                     var dir = checkout.checkout(repoUrl, branch, sha);
                     System.out.println("[CI] Checked out into: " + dir);
+                    
+                    // Run mvnw compile inside the checked out repo
+                    CompileRunner.Result result = CompileRunner.runMvnwCompile(dir.toFile());
 
-                    // TODO: run mvn compile/test inside dir
-                    // TODO: post status using StatusPoster
+                    System.out.println("[CI] mvnw compile exitCode: " + result.exitCode);
+
+                    System.out.println("----- OUTPUT MESSAGE -----");
+                    System.out.print(result.outputMessage);
+
+                    System.out.println("----- ERRORS -----");
+                    System.out.print(result.errorMessage);
+
+                    if (result.exitCode == 0) { 
+                        System.out.println("[CI] Compile succeeded"); 
+                    } else {
+                        StatusPoster status = new StatusPoster();                
+                        status.postStatus(sha, "failure", "", "CI: Compile failed");
+                        System.out.println("[CI] compile failed");
+                    }
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    try {
+                        new StatusPoster().postStatus(sha, "error", "", "CI: server error");
+                    } catch (Exception ignored) {}
                 }
             });
 
