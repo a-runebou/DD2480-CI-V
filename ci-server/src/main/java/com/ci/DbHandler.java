@@ -1,5 +1,9 @@
 package com.ci;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,14 +14,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DbHandler {
-    private String dbUrl = "jdbc:sqlite:data/builds.db";
+    private String dbUrl = "jdbc:sqlite:builds.db";
 
     public DbHandler() {
-        this("jdbc:sqlite:data/builds.db");
+        this("data/builds.db");
     }
 
     public DbHandler(String dbUrl) {
-        this.dbUrl = dbUrl;
+        Path path = Paths.get(dbUrl);
+        Path parentDir = path.getParent();
+        if (parentDir != null && !Files.exists(parentDir)) {
+            try {
+                Files.createDirectories(parentDir);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create directories for database path: " + dbUrl, e);
+            }
+        }
+        this.dbUrl = "jdbc:sqlite:"+dbUrl;
     }
 
     private Connection getConnection() throws SQLException {
