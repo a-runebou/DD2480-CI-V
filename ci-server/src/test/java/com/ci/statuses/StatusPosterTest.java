@@ -60,7 +60,7 @@ public class StatusPosterTest {
      * Contract:
      * The postStatus function shall post a new commit status to the github API, and receive a response
      * with status code in the range of 200-299 if everything went correctly, or different if an error occured. If status
-     * code is different, the function shall throw RuntimeException.
+     * code is different, the function shall throw RuntimeException. The function shall be injection safe.
      * 
      * Expected behavior:
      * Given a valid SHA of an existing commit, the function shall complete without throwing exceptions.
@@ -69,8 +69,8 @@ public class StatusPosterTest {
     void validShaDoesNotThrow() {
         StatusPoster sp = new StatusPoster();
         assertDoesNotThrow(()-> {
-            sp.postStatus("7f37d2da1b409a2ce60b8a068d081745372f7f39", "error", // test commit on the issue/8-test-branch
-            "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1", "test description"); 
+            sp.postStatus("7f37d2da1b409a2ce60b8a068d081745372f7f39", "success", // test commit on the issue/8-test-branch
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1", "this is a test\" description with ', /, \n aa and \\ characters"); 
         });
     }
 }

@@ -3,22 +3,20 @@ package com.ci;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
-
+import com.ci.checkout.GitCheckoutService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.ci.pipeline.CIPipeline;
 import com.ci.statuses.StatusPosterAdapter;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
 
 public class Server {
     private HttpServer server;
-    private int port;
     private static boolean DEBUG = true;
 
     private final ExecutorService exec;
@@ -38,24 +36,29 @@ public class Server {
      */
     public Server(CIPipeline pipeline, ExecutorService exec) {
         this.server = null;
-        this.port = 2480 + 5; // Default port
-        this.pipeline = pipeline;
-        this.exec = exec;
+    }
+
+    /**
+     * Returns the port number the server is running on.
+     * @return the port number.
+     */
+    public int getPort() {
+        return this.server.getAddress().getPort();
     }
 
     /** 
      * Starts the server.
      * @throws IOException if the server fails to start.
      */
-    public void start() throws IOException {
-        this.server = HttpServer.create(new InetSocketAddress(this.port), 0);
-        this.server.createContext("/webhook", exchange -> handleRequest(exchange, pipeline, exec));
+    public void start(int port) throws IOException {
+        this.server = HttpServer.create(new InetSocketAddress(port), 0);
+        this.server.createContext("/webhook", Server::handleRequest);
         this.server.setExecutor(null);
         this.server.start();
 
         // Debug information
         if (DEBUG) {
-            System.out.println("Server started on port " + this.port);
+            System.out.println("Server started on port " + this.getPort());
         }
     }
 

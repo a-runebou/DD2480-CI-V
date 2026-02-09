@@ -9,6 +9,9 @@ import java.net.http.HttpResponse;
 import java.util.Properties;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public class StatusPoster {
     private String repo;
     private String owner;
@@ -30,9 +33,9 @@ public class StatusPoster {
                 throw new IllegalStateException("token.config not found on classpath.");
             }
             prop.load(input);
-            this.token = prop.getProperty("token");
-            this.owner = prop.getProperty("owner");
-            this.repo = prop.getProperty("repo");
+            this.token = prop.getProperty("token").trim();
+            this.owner = prop.getProperty("owner").trim();
+            this.repo = prop.getProperty("repo").trim();
             if (repo == null || owner == null || token == null) {
                 throw new IllegalStateException("token.config must define token, owner and repo.");
         }
@@ -58,15 +61,14 @@ public class StatusPoster {
         if (!Set.of("error", "failure", "pending", "success").contains(state)) {
             throw new IllegalArgumentException("Invalid state: " + state);
         }
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root = mapper.createObjectNode();
+        root.put("state", state);
+        root.put("target_url", targetUrl);
+        root.put("description", description);
+        root.put("context", "continuous-integration");
         // create the body
-        String body = String.format(
-            """
-            { "state": "%s",
-            "target_url": "%s",
-            "description": "%s",
-            "context": "continuous-integration"
-            }""",state, targetUrl, description
-        );
+        String body = mapper.writeValueAsString(root);
         // create the github api url
         String gitUrl = "https://api.github.com/repos/"+this.owner+"/"+this.repo+"/statuses/"+sha;
         HttpRequest request = HttpRequest.newBuilder()
@@ -78,7 +80,6 @@ public class StatusPoster {
                 .build();
         
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
         if (response.statusCode()<200 || response.statusCode() >= 300) { // 200 - OK, 201 - status created
             throw new RuntimeException("Failed to create commit status, code "+response.statusCode() + ": "+response.body());
         } 

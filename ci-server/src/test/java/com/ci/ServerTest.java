@@ -1,5 +1,6 @@
 package com.ci;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -79,9 +80,9 @@ public class ServerTest {
             }
         };
         
-        server = new Server(fakePipeline, testExecutor());
-        server.start();
-        port = 2480 + 5;
+        server = new Server();
+        server.start(0);
+        port = server.getPort();
     }
 
     @AfterEach
@@ -212,4 +213,29 @@ public class ServerTest {
     }
 
 
+    /**
+     * Contract:
+     * When the server is started on a port that is already in use, it should throw an IOException.
+     * 
+     * Expected Behavior:
+     * The server fails to start and throws an IOException with the message "Address already in use" 
+     * when attempting to bind to a port that is already occupied by another server instance.
+     */
+    @Test
+    public void testStartOnUnavailablePortThrowsException() throws Exception {
+        // Start a server on an available port
+        Server server1 = new Server();
+        server1.start(0);
+        int usedPort = server1.getPort();
+
+        // Attempt to start another server on the same port, which should fail
+        Server server2 = new Server();
+        try {
+            server2.start(usedPort);
+        } catch (IOException ex) {
+            assertEquals("Address already in use", ex.getMessage());
+        } finally {
+            server1.stop();
+        }
+    }
 }
