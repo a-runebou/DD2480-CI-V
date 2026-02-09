@@ -40,8 +40,8 @@ public class ServerTest {
     @BeforeEach
     public void setUp() throws Exception {
         server = new Server();
-        server.start();
-        port = 2480 + 5;
+        server.start(0);
+        port = server.getPort();
     }
 
     @AfterEach
