@@ -3,9 +3,10 @@ package com.ci;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,7 +23,7 @@ public class ServerTest {
     
     private Server server;
     private int port;
-    private AtomicBoolean pipelineCalled;
+    private CountDownLatch pipelineLatch;
     
     private static final String VALID_PAYLOAD = """
         {
@@ -69,13 +70,13 @@ public class ServerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        pipelineCalled = new AtomicBoolean(false);
+        pipelineLatch = new CountDownLatch(1);
         
-        // Create a fake pipeline that just records it was called
+        // Create a fake pipeline that counts down when called
         CIPipeline fakePipeline = new CIPipeline(fakeReporter()) {
             @Override
             public void run(String repoUrl, String branch, String sha) {
-                pipelineCalled.set(true);
+                pipelineLatch.countDown();
                 // Don't do any real work - no git clone, no maven
             }
         };
@@ -110,7 +111,10 @@ public class ServerTest {
         connection.getOutputStream().write(VALID_PAYLOAD.getBytes());
         int responseCode = connection.getResponseCode();
         assertEquals(200, responseCode);
-        assertTrue(pipelineCalled.get(), "Pipeline should have been called for valid webhook");
+        
+        // Wait for async pipeline to be called (max 5 seconds)
+        boolean called = pipelineLatch.await(5, TimeUnit.SECONDS);
+        assertTrue(called, "Pipeline should have been called for valid webhook");
     }
 
 
