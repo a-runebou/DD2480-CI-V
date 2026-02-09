@@ -33,9 +33,9 @@ public class StatusPoster {
                 throw new IllegalStateException("token.config not found on classpath.");
             }
             prop.load(input);
-            this.token = prop.getProperty("token");
-            this.owner = prop.getProperty("owner");
-            this.repo = prop.getProperty("repo");
+            this.token = prop.getProperty("token").trim();
+            this.owner = prop.getProperty("owner").trim();
+            this.repo = prop.getProperty("repo").trim();
             if (repo == null || owner == null || token == null) {
                 throw new IllegalStateException("token.config must define token, owner and repo.");
         }
