@@ -1,16 +1,35 @@
 package com.ci;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class DbHandlerTest {
+    private File tempDbFile;
+    private String dbUrl;
+
+    @BeforeEach
+    void createTempDb() throws Exception {
+        tempDbFile = Files.createTempFile("testdb", ".db").toFile();
+        dbUrl = tempDbFile.getAbsolutePath();
+    }
+
+    @AfterEach
+    void deleteTempDb() {
+        if (tempDbFile.exists()) {
+            tempDbFile.delete();
+        }
+    }
     /**
      * Contract:
      * The DbHandler shall be instantiate without problems and creating the build table shall not throw exceptions.
@@ -20,11 +39,10 @@ public class DbHandlerTest {
      */
     @Test
     void createTableShouldNotThrow() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         assertNotNull(dbHandler);
         assertDoesNotThrow(() -> {
             dbHandler.createBuildTable();
-            dbHandler.closeConnection();
         });
     }
 
@@ -37,12 +55,11 @@ public class DbHandlerTest {
      */
     @Test
     void shaMustBeUnique() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         assertThrows(RuntimeException.class, () -> {
             dbHandler.createBuildTable();
             dbHandler.addEntry("123", "test_branch", "error", "testing 'apostrophes' in description");
             dbHandler.addEntry("123", "test_branch", "error", "testing 'apostrophes' in description");
-            dbHandler.closeConnection();
         });
     }
 
@@ -55,11 +72,10 @@ public class DbHandlerTest {
      */
     @Test
     void insertValueShouldNotThrow() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         assertDoesNotThrow(() -> {
             dbHandler.createBuildTable();
             dbHandler.addEntry("123", "test_branch", "pending");
-            dbHandler.closeConnection();
         });
     }
 
@@ -72,7 +88,7 @@ public class DbHandlerTest {
      */
     @Test
     void insertTwoValuesAndGetAllShouldHaveLengthOf2() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         assertDoesNotThrow(()-> {
             dbHandler.createBuildTable();
             dbHandler.addEntry("123", "test_branch", "pending", "first test entry");
@@ -91,12 +107,11 @@ public class DbHandlerTest {
      */
     @Test
     void nonExistentShaReturnsNull() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
         dbHandler.addEntry("123", "test_branch", "pending", "first test entry");
         BuildEntry result = dbHandler.selectBySha("456");
         assertNull(result);
-        dbHandler.closeConnection();
     }
 
     /**
@@ -108,7 +123,7 @@ public class DbHandlerTest {
      */
     @Test
     void selectByShaReturnsCorrectEntry() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
         dbHandler.addEntry("12", "test_branch", "pending", "first test entry");
         dbHandler.addEntry("13", "test_branch", "pending", "second test entry");
@@ -116,7 +131,6 @@ public class DbHandlerTest {
         BuildEntry result = dbHandler.selectBySha("13");
         assertNotNull(result);
         assertEquals("second test entry", result.buildDescription);
-        dbHandler.closeConnection();
     }
 
     /**
@@ -128,14 +142,13 @@ public class DbHandlerTest {
      */
     @Test
     void nonExistentBranchReturnsEmptyList() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
         dbHandler.addEntry("123", "branch1", "pending");
         dbHandler.addEntry("456", "branch1", "pending");
         dbHandler.addEntry("789", "branch2", "pending");
         List<BuildEntry> result = dbHandler.selectByBranch("branch3");
         assertEquals(0, result.size());
-        dbHandler.closeConnection();
     }
 
     /**
@@ -147,7 +160,7 @@ public class DbHandlerTest {
      */
     @Test
     void selectByBranchReturnsEntriesFromGivenBranch() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
         dbHandler.addEntry("123", "branch1", "pending");
         dbHandler.addEntry("456", "branch3", "pending");
@@ -158,7 +171,6 @@ public class DbHandlerTest {
         for (BuildEntry entry : result) {
             assertEquals("branch1", entry.branch);
         }
-        dbHandler.closeConnection();
     }
 
     /**
@@ -170,14 +182,13 @@ public class DbHandlerTest {
      */
     @Test
     void deleteEntryRemovesEntry() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
         dbHandler.addEntry("123", "branch1", "pending");
         dbHandler.addEntry("456", "branch1", "pending");
         dbHandler.deleteEntry("123");
         BuildEntry result = dbHandler.selectBySha("123");
         assertNull(result);
-        dbHandler.closeConnection();
     }
 
     /**
@@ -189,7 +200,7 @@ public class DbHandlerTest {
      */
     @Test
     void updateEntryChangesValues() {
-        DbHandler dbHandler = new DbHandler(true);
+        DbHandler dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
         dbHandler.addEntry("123", "branch1", "pending", "initial description");
         dbHandler.updateEntry("123", "branch2", "error", "updated description");
@@ -198,6 +209,5 @@ public class DbHandlerTest {
         assertEquals("branch2", result.branch);
         assertEquals("error", result.buildResult);
         assertEquals("updated description", result.buildDescription);
-        dbHandler.closeConnection();
     }
 }

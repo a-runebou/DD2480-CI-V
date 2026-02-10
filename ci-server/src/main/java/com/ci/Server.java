@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.ci.checkout.GitCheckoutService;
+import com.ci.rest.AllBuildsHandler;
+import com.ci.rest.BuildByShaHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
@@ -14,12 +16,21 @@ import com.sun.net.httpserver.HttpServer;
 
 public class Server {
     private HttpServer server;
+    private final DbHandler dbHandler;
     private static boolean DEBUG = true;
 
     private static final ExecutorService EXEC = Executors.newFixedThreadPool(2);
 
     public Server() {
         this.server = null;
+        this.dbHandler = new DbHandler(); // Optionally specify a different database
+        dbHandler.createBuildTable();
+    }
+
+    public Server(String dbUrl) { // for testing with a specific database
+        this.server = null;
+        this.dbHandler = new DbHandler(dbUrl);
+        dbHandler.createBuildTable();
     }
 
     /**
@@ -37,6 +48,8 @@ public class Server {
     public void start(int port) throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
         this.server.createContext("/webhook", Server::handleRequest);
+        this.server.createContext("/builds", new AllBuildsHandler(this.dbHandler));
+        this.server.createContext("/builds/", new BuildByShaHandler(this.dbHandler));
         this.server.setExecutor(null);
         this.server.start();
 
