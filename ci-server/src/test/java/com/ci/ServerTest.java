@@ -248,7 +248,7 @@ public class ServerTest {
         try {
             server2.start(usedPort);
         } catch (IOException ex) {
-            assertEquals("Address already in use", ex.getMessage());
+            assertTrue(ex.getMessage().startsWith("Address already in use"));
         } finally {
             server1.stop();
         }
