@@ -5,7 +5,6 @@ public class Dummy {
         return a + b;
     }
     public static int subtract(int a, int b) {
-        System.out.println("TEST");
         return a - b;
     }
     public static int multiply(int a, int b) {
