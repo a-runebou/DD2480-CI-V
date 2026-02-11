@@ -11,7 +11,7 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
 3. It **builds (compiles)** and **runs tests** in that workspace.
 4. It **reports the result** (e.g., as a **GitHub commit status**).
 
-
+![CI Pipeline Flowchart](images/pipeline.png)
 
 ---
 
