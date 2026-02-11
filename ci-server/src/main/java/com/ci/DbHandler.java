@@ -13,6 +13,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The DbHandler class is responsible for managing the database operations related to build entries.
+ * It provides methods to create the builds table, add new entries, retrieve entries, update existing entries, and delete entries based on commit SHA.
+ * The class uses SQLite as the underlying database and ensures that the necessary directories are created if they do not exist.
+ */
 public class DbHandler {
     private String dbUrl = "jdbc:sqlite:builds.db";
 
