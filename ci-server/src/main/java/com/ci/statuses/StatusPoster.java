@@ -12,6 +12,10 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The StatusPoster class is responsible for posting status updates to GitHub for a specific commit.
+ * It reads the necessary configuration from a properties file and uses the GitHub API to create commit statuses.
+ */
 public class StatusPoster {
     private String repo;
     private String owner;

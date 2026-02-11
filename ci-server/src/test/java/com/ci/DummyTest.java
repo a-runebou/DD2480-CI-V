@@ -4,6 +4,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 public class DummyTest {
+    /**
+     * Contract:
+     * Function testMult shall return the correct product of two integers.
+     * 
+     * Expected behavior:
+     * Given two integers a and b, the function shall return a * b.
+     */
     @Test
     public void testMult() {
         int a = 5;
@@ -13,6 +20,13 @@ public class DummyTest {
         assertEquals(result, mult_result);
     }
     
+    /**
+     * Contract:
+     * Function testAdd shall return the correct sum of two integers.
+     * 
+     * Expected behavior:
+     * Given two integers a and b, the function shall return a + b.
+     */
     @Test
     public void testAdd() {
         int a = 5;
@@ -21,7 +35,13 @@ public class DummyTest {
         int add_result = Dummy.add(a, b);
         assertEquals(result, add_result);
     }  
-    
+    /**
+     * Contract:
+     * Function testSub shall return the correct difference of two integers.
+     * 
+     * Expected behavior:
+     * Given two integers a and b, the function shall return a - b.
+     */    
     @Test
     public void testSub() {
         int a = 5;

@@ -7,6 +7,10 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Responsible for checking out code, cloning the repository, and checking out the specific commit.
+ * Creates a temporary directory for the checkout and ensures cleanup in case of failure.
+ */
 public class GitCheckoutService {
 
     public Path checkout(String repoUrl, String branch, String sha)

@@ -1,5 +1,9 @@
 package com.ci;
 
+/**
+ * The BuildEntry class represents a single build entry in the database.
+ * It contains information about the commit SHA, branch, build result, description, and date of the build.
+ */
 public class BuildEntry {
     public int id;
     public String sha;
@@ -8,6 +12,7 @@ public class BuildEntry {
     public String buildDescription;
     public String buildDate;
 
+    
     public BuildEntry(int id, String sha, String branch, String result, String description, String date) {
         this.id = id;
         this.sha = sha;
