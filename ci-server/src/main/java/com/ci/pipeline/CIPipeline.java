@@ -6,6 +6,9 @@ import com.ci.statuses.StatusPosterAdapter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Orchestrates the CI pipeline: checks out code, runs tests, and posts status updates.
+ */
 public class CIPipeline {
     private final GitCheckoutService checkoutService;
     private final CommandRunner runner;
