@@ -11,7 +11,7 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
 3. It **builds (compiles)** and **runs tests** in that workspace.
 4. It **reports the result** (e.g., as a **GitHub commit status**).
 
-
+![CI Pipeline Flowchart](images/pipeline.png)
 
 ---
 
@@ -240,6 +240,13 @@ We implemented a two-branch workflow with protection rules on both `dev` and `ma
 We followed the Conventional Commits specification for commit messages throughout the project (e.g., `feat:`, `fix:`, `refactor:`, `test:`, `docs:`), making the change history easy to scan and review. In addition, we maintained consistent naming conventions across the codebase (classes, methods, variables, and packages) to keep the project readable and predictable for all team members.
 
 ---
+
+## Team Achievements
+During the development of our CI server we focused on building a robust and testable architecture. Some aspects we are particularly proud of include:
+
+- **Testing Strategy**: A combination of unit tests and integration tests was implemented to ensure the reliability of the CI pipeline. We achieved a code coverage of approximately 70%, which we consider a strong indicator of our testing efforts.
+- **Modular Design**: Clear execution logic. Dependency injection allows flexible testing and easier maintenance. Status reporting decoupled from execution logic.
+- **Automation and Quality Assurance**: Maven based build and test automation using GitHub Actions ensured that our code is continuously tested and built, maintaining high code quality throughout development.
 
 ## SEMAT 
 
