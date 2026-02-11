@@ -222,7 +222,7 @@ cd ci-server
 
 
 #### Dev. Carl Isaksson (GitHub: @carlisaksson):
-> ...........
+> Compiler Integration, Bug fixes, Refactoring
 
 #### Dev. Josef Kahoun (GitHub: @kahoujo1):
 > Commit Status posting, Database handling, REST API for the database, Documentation
