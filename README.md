@@ -1,24 +1,85 @@
+![Maven Build and Test](https://github.com/a-runebou/DD2480-CI-V/actions/workflows/maven.yml/badge.svg)
+
 # DD2480-CI-V
 
 ## Summary
 This project implements a minimal Continuous Integration (CI) server in Java, designed to demonstrate the core principles of continuous integration. The server listens for GitHub webhook events, checks out the affected branch, compiles the project, executes automated tests, and reports build results back to GitHub using commit status notifications.
 
-## Requirements
+**Core Idea:**
+1. **GitHub webhook** notifies our server when someone pushes.
+2. The server **checks out** the pushed branch/commit into a temporary workspace.
+3. It **builds (compiles)** and **runs tests** in that workspace.
+4. It **reports the result** (e.g., as a **GitHub commit status**).
+
+
+
+---
+
+## Table of Contents
+
+- [Summary](#summary)
+- [Table of Contents](#table-of-contents)
+- [Project Structure](#project-structure)
+- [Requirements](#requirements-and-dependencies)
+- [Run the Server](#run-the-server)
+- [Local Setup with ngrok](#local-setup-with-ngrok)
+- [Notification of CI results](#notification-of-ci-results)
+- [Grader's Guide](#graders-guide)
+- [Statement of Contributions](#statement-of-contributions)
+- [SEMAT](#semat)
+- [License](#license)
+
+---
+
+## Project Structure
+```
+.
+├── .github/workflows/       # GitHub Actions 
+├── ci-server/              # Main project file
+│   ├── src/main/java/com/ci/
+│   │   ├── Server.java     # HTTP server + webhook endpoint
+│   │   ├── checkout/       # Git checkout logic
+│   │   ├── pipeline/       # CIPipeline to structure the integration
+│   │   └── statuses/       # GitHub commit status poster/reporting
+│   └── src/test/java/...   # Unit tests
+└── LICENSE
+```
+
+---
+
+
+## Requirements and Dependencies
 - Java 19 (JDK)
+- **Git** installed and available in PATH
+- Internet access for webhooks
 
 Verify your Java installation by running:
 ```bash
 java -version
 ```
 
-Maven version 3.9.12 was used locally, but this project uses Maven Wrapper meaning no local Maven installation is required.
 
-## Build and Run
+### Build & Test 
+```bash
+cd ci-server
+./mvnw clean test
+```
+Note: This project uses Maven Wrapper, no local Maven installation is required, but Maven version 3.9.12 was used locally.
+
+---
+
+## Run the Server
+
+Start the server:
 
 ```bash
-./mvnw clean test
 ./mvnw exec:java
 ```
+
+When running, the server exposes:
+- `POST /webhook`: GitHub sends push payloads here.
+
+---
 
 ## Local Setup with ngrok
 To test the CI server locally with GitHub webhooks, you can use [ngrok](https://ngrok.com/) to expose your local server to the internet.
@@ -41,6 +102,9 @@ To test the CI server locally with GitHub webhooks, you can use [ngrok](https://
    - Click **Add webhook** to save.
 6. Now, when you push changes to the GitHub repository, GitHub will send a webhook to your local CI server via ngrok, which triggers the pipeline.
 
+
+
+
 ## Notification of CI results
 The notification of results was implemented using **commit statuses** via the GitHub REST API.
 Settings for the notification must be stored inside file `ci-server/src/main/resources/token.config` (note that the file is missing on GitHub, and needs to be set up manually).
@@ -59,3 +123,57 @@ The notifications are sent using the `StatusPoster` class, which allows
 - Adding a URL associated with the CI job.
 
 For more information, please refer to the `StatusPoster` implementation.
+
+To post commit statuses, the server needs a GitHub token.
+
+---
+
+## Grader's Guide
+
+ `assessment` branch is made for grading reference.
+All grading actions are to be performed on the branch **`assessment`**.  
+
+
+## Statement of Contributions
+ 
+
+### Individual Contribution:
+#### Dev. Fabian W (GitHub: @crancker96): 
+> ..........
+
+
+#### Dev. Apeel Subedi (GitHub: @rippyboii):
+> CI Pipeline Implementation, Documentation, GitCheckout Service, Bug fixes
+
+
+#### Dev. Carl Isaksson (GitHub: @carlisaksson):
+> ...........
+
+#### Dev. Josef Kahoun (GitHub: @kahoujo1):
+> .......
+
+#### Dev. Alexander Runebou (GitHub: @a-runebou):
+>  .......
+
+
+
+### Team Contribution:
+.
+.
+.
+.
+---
+
+## SEMAT 
+
+**Team state (Essence "Team" alpha)**: Collaborating.
+
+Our team is currently in the Collaborating state. The mission, roles, responsibilities, and communication methods are defined, and team members work together toward shared goals. 
+
+For a detailed description, see our Wiki page at: [Way of Working documentation](https://github.com/a-runebou/DD2480-CI-V/wiki/Progress-of-the-Team).
+
+---
+
+## License
+
+This project is licensed under the terms in [LICENSE](LICENSE).
