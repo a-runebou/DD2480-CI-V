@@ -5,15 +5,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.ci.checkout.GitCheckoutService;
-import com.ci.statuses.StatusPoster;
+import com.ci.pipeline.CIPipeline;
 import com.ci.rest.AllBuildsHandler;
 import com.ci.rest.BuildByShaHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.ci.pipeline.CIPipeline;
-import com.ci.statuses.StatusPosterAdapter;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -42,6 +38,7 @@ public class Server {
         this.pipeline = pipeline;
         this.exec = exec;
         this.dbHandler = new DbHandler();
+        this.pipeline.setDbHandler(this.dbHandler);
         dbHandler.createBuildTable();
     }
 
@@ -64,6 +61,7 @@ public class Server {
         this.pipeline = pipeline;
         this.exec = exec;
         this.dbHandler = new DbHandler(dbUrl);
+        this.pipeline.setDbHandler(this.dbHandler);
         dbHandler.createBuildTable();
     }
 
