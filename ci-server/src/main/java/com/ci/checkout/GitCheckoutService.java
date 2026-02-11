@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 
 public class GitCheckoutService {
@@ -14,14 +15,28 @@ public class GitCheckoutService {
         // this creastes the temp. directory to checkout the code into.
         Path workDir = Files.createTempDirectory("ci-checkout-");
 
-        run(List.of("git", "clone","--single-branch","--branch", branch, repoUrl, workDir.toString()
-        ), null);
+        try {
+            run(List.of(
+                "git", "clone","--single-branch",
+                "--branch", branch, repoUrl, workDir.toString()
+            ), null);
 
-        if (sha != null && !sha.isBlank()) {
-            run(List.of("git", "checkout", sha), workDir);
+            if (sha != null && !sha.isBlank()) {
+                run(List.of("git", "checkout", sha), workDir);
+            }
+
+            return workDir;
+        } catch (Exception e) {
+            // Cleanup on failure
+            Files.walk(workDir)
+                .sorted(Comparator.reverseOrder()) // Delete children first
+                .forEach(p -> {
+                    try { 
+                        Files.deleteIfExists(p); 
+                    } catch (IOException ex) {}
+                });
+            throw e;
         }
-
-        return workDir;
     }
 
     private static String run(List<String> cmd, Path cwd)
