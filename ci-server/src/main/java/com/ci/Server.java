@@ -29,7 +29,7 @@ public class Server {
      * Production constructor: uses real pipeline and executor.
      */
     public Server() {
-        this(new CIPipeline(new StatusPosterAdapter()), Executors.newFixedThreadPool(2));
+        this(new CIPipeline(), Executors.newFixedThreadPool(2));
     }
 
     /**
@@ -50,7 +50,7 @@ public class Server {
      * @param dbUrl the database URL to use
      */
     public Server(String dbUrl) {
-        this(new CIPipeline(new StatusPosterAdapter()), Executors.newFixedThreadPool(2), dbUrl);
+        this(new CIPipeline(), Executors.newFixedThreadPool(2), dbUrl);
     }
 
     /**
@@ -196,10 +196,8 @@ public class Server {
                 try {
                     pipeline.run(repoUrl, branch, sha);
                 } catch (Exception e) {
+                    // Just log - pipeline already handles status reporting
                     e.printStackTrace();
-                    try {
-                        new StatusPoster().postStatus(sha, "error", "", "CI: server error");
-                    } catch (Exception ignored) {}
                 }
             });
 

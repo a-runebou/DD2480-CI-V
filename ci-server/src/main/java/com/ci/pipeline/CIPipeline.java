@@ -1,6 +1,7 @@
 package com.ci.pipeline;
 
 import com.ci.checkout.GitCheckoutService;
+import com.ci.statuses.StatusPosterAdapter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,11 +22,10 @@ public class CIPipeline {
     }
 
     /**
-     * Convenience constructor: uses default checkout + runner,
-     * but you MUST provide a StatusReporter.
+     * Default constructor: uses real services for production.
      */
-    public CIPipeline(StatusReporter statusReporter) {
-        this(new GitCheckoutService(), new CommandRunner(), statusReporter);
+    public CIPipeline() {
+        this(new GitCheckoutService(), new CommandRunner(), new StatusPosterAdapter());
     }
 
     public void run(String repoUrl, String branch, String sha) {

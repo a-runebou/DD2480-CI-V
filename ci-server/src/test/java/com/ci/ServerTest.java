@@ -16,7 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.ci.checkout.GitCheckoutService;
 import com.ci.pipeline.CIPipeline;
+import com.ci.pipeline.CommandRunner;
 import com.ci.pipeline.StatusReporter;
 
 
@@ -79,7 +81,7 @@ public class ServerTest {
         dbUrl = tempDbFile.getAbsolutePath();
         
         // Create a fake pipeline that counts down when called
-        CIPipeline fakePipeline = new CIPipeline(fakeReporter()) {
+        CIPipeline fakePipeline = new CIPipeline(new GitCheckoutService(), new CommandRunner(), fakeReporter()) {
             @Override
             public void run(String repoUrl, String branch, String sha) {
                 pipelineLatch.countDown();
