@@ -17,17 +17,27 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
 
 ## Table of Contents
 
-- [Summary](#summary)
-- [Table of Contents](#table-of-contents)
-- [Project Structure](#project-structure)
-- [Requirements](#requirements-and-dependencies)
-- [Run the Server](#run-the-server)
-- [Local Setup with ngrok](#local-setup-with-ngrok)
-- [Notification of CI results](#notification-of-ci-results)
-- [Grader's Guide](#graders-guide)
-- [Statement of Contributions](#statement-of-contributions)
-- [SEMAT](#semat)
-- [License](#license)
+- [DD2480-CI-V](#dd2480-ci-v)
+  - [Summary](#summary)
+  - [Table of Contents](#table-of-contents)
+  - [Project Structure](#project-structure)
+  - [Requirements and Dependencies](#requirements-and-dependencies)
+    - [Build \& Test](#build--test)
+  - [Run the Server](#run-the-server)
+  - [Local Setup with ngrok](#local-setup-with-ngrok)
+  - [Build list URL](#build-list-url)
+  - [Grader's Guide](#graders-guide)
+  - [Statement of Contributions](#statement-of-contributions)
+    - [Individual Contribution:](#individual-contribution)
+      - [Dev. Fabian W (GitHub: @crancker96):](#dev-fabian-w-github-crancker96)
+      - [Dev. Apeel Subedi (GitHub: @rippyboii):](#dev-apeel-subedi-github-rippyboii)
+      - [Dev. Carl Isaksson (GitHub: @carlisaksson):](#dev-carl-isaksson-github-carlisaksson)
+      - [Dev. Josef Kahoun (GitHub: @kahoujo1):](#dev-josef-kahoun-github-kahoujo1)
+      - [Dev. Alexander Runebou (GitHub: @a-runebou):](#dev-alexander-runebou-github-a-runebou)
+    - [Team Contribution:](#team-contribution)
+  - [.](#)
+  - [SEMAT](#semat)
+  - [License](#license)
 
 ---
 
@@ -115,6 +125,7 @@ owner: <OWNER_NAME>
 repo: <REPO_NAME>
 token: <TOKEN>
 ```
+To post commit statuses, the server needs a GitHub token.
 We recommend using fine-grained personal access tokens, [see GitHub Authentication](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
 The notifications are sent using the `StatusPoster` class, which allows
@@ -124,7 +135,12 @@ The notifications are sent using the `StatusPoster` class, which allows
 
 For more information, please refer to the `StatusPoster` implementation.
 
-To post commit statuses, the server needs a GitHub token.
+
+---
+
+## Build list URL
+
+
 
 ---
 
