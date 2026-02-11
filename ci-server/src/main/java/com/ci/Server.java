@@ -11,6 +11,9 @@ import com.ci.rest.AllBuildsHandler;
 import com.ci.rest.BuildByShaHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.ci.pipeline.CIPipeline;
+import com.ci.statuses.StatusPosterAdapter;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -19,16 +22,47 @@ public class Server {
     private final DbHandler dbHandler;
     private static boolean DEBUG = true;
 
-    private static final ExecutorService EXEC = Executors.newFixedThreadPool(2);
+    private final ExecutorService exec;
+    private final CIPipeline pipeline;
 
+    /**
+     * Production constructor: uses real pipeline and executor.
+     */
     public Server() {
+        this(new CIPipeline(), Executors.newFixedThreadPool(2));
+    }
+
+    /**
+     * Test constructor: allows injection of mock/fake pipeline and executor.
+     * @param pipeline the CI pipeline to use for processing webhooks
+     * @param exec the executor service for running pipeline tasks
+     */
+    public Server(CIPipeline pipeline, ExecutorService exec) {
         this.server = null;
-        this.dbHandler = new DbHandler(); // Optionally specify a different database
+        this.pipeline = pipeline;
+        this.exec = exec;
+        this.dbHandler = new DbHandler();
         dbHandler.createBuildTable();
     }
 
-    public Server(String dbUrl) { // for testing with a specific database
+    /**
+     * Constructor for testing with a specific database.
+     * @param dbUrl the database URL to use
+     */
+    public Server(String dbUrl) {
+        this(new CIPipeline(), Executors.newFixedThreadPool(2), dbUrl);
+    }
+
+    /**
+     * Full test constructor: allows injection of pipeline, executor, and database.
+     * @param pipeline the CI pipeline to use for processing webhooks
+     * @param exec the executor service for running pipeline tasks
+     * @param dbUrl the database URL to use
+     */
+    public Server(CIPipeline pipeline, ExecutorService exec, String dbUrl) {
         this.server = null;
+        this.pipeline = pipeline;
+        this.exec = exec;
         this.dbHandler = new DbHandler(dbUrl);
         dbHandler.createBuildTable();
     }
@@ -47,7 +81,7 @@ public class Server {
      */
     public void start(int port) throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
-        this.server.createContext("/webhook", Server::handleRequest);
+        this.server.createContext("/webhook", exchange -> handleRequest(exchange, pipeline, exec));
         this.server.createContext("/builds", new AllBuildsHandler(this.dbHandler));
         this.server.createContext("/builds/", new BuildByShaHandler(this.dbHandler));
         this.server.setExecutor(null);
@@ -66,14 +100,19 @@ public class Server {
         if (this.server != null) {
             this.server.stop(0);
         }
+        if (this.exec != null) {
+            this.exec.shutdownNow();
+        }
     }
 
     /**
      * Handles incoming HTTP requests.
      * @param exchange the HTTP exchange containing request and response data.
+     * @param pipeline the CI pipeline to run for valid webhooks.
+     * @param exec the executor service for running pipeline tasks.
      * @throws IOException if an I/O error occurs.
      */
-    public static void handleRequest(HttpExchange exchange) throws IOException {
+    public static void handleRequest(HttpExchange exchange, CIPipeline pipeline, ExecutorService exec) throws IOException {
         if (DEBUG) {
             System.out.println("Handling request...");
         }
@@ -153,36 +192,12 @@ public class Server {
             }
             String repoUrl = repoNode.get("clone_url").asText();
 
-            EXEC.submit(() -> {
+            exec.submit(() -> {
                 try {
-                    GitCheckoutService checkout = new GitCheckoutService();
-                    var dir = checkout.checkout(repoUrl, branch, sha);
-                    System.out.println("[CI] Checked out into: " + dir);
-                    
-                    // Run mvnw compile inside the checked out repo
-                    CompileRunner.Result result = CompileRunner.runMvnwCompile(dir.toFile());
-
-                    System.out.println("[CI] mvnw compile exitCode: " + result.exitCode);
-
-                    System.out.println("----- OUTPUT MESSAGE -----");
-                    System.out.print(result.outputMessage);
-
-                    System.out.println("----- ERRORS -----");
-                    System.out.print(result.errorMessage);
-
-                    if (result.exitCode == 0) { 
-                        System.out.println("[CI] Compile succeeded"); 
-                    } else {
-                        StatusPoster status = new StatusPoster();                
-                        status.postStatus(sha, "failure", "", "CI: Compile failed");
-                        System.out.println("[CI] compile failed");
-                    }
-
+                    pipeline.run(repoUrl, branch, sha);
                 } catch (Exception e) {
+                    // Just log - pipeline already handles status reporting
                     e.printStackTrace();
-                    try {
-                        new StatusPoster().postStatus(sha, "error", "", "CI: server error");
-                    } catch (Exception ignored) {}
                 }
             });
 
