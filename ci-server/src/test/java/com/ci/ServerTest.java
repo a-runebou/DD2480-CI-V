@@ -1,7 +1,10 @@
 package com.ci;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
 
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,6 +20,8 @@ public class ServerTest {
     private Server server;
     private HttpServer httpServer;
     private int port;
+    private String dbUrl;
+    private File tempDbFile;
     private static final String VALID_PAYLOAD = """
         {
             "ref": "refs/heads/main",
@@ -39,15 +44,21 @@ public class ServerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        server = new Server();
-        server.start();
-        port = 2480 + 5;
+        tempDbFile = Files.createTempFile("testdb", ".db").toFile();
+        dbUrl = tempDbFile.getAbsolutePath();
+        // Initialize the database with test data 
+        server = new Server(dbUrl);
+        server.start(0);
+        port = server.getPort();
     }
 
     @AfterEach
     public void tearDown() throws Exception {
         if (server != null) {
             server.stop();
+        }
+        if (tempDbFile != null && tempDbFile.exists()) {
+            tempDbFile.delete();
         }
     }
 
@@ -170,4 +181,29 @@ public class ServerTest {
     }
 
 
+    /**
+     * Contract:
+     * When the server is started on a port that is already in use, it should throw an IOException.
+     * 
+     * Expected Behavior:
+     * The server fails to start and throws an IOException with the message "Address already in use" 
+     * when attempting to bind to a port that is already occupied by another server instance.
+     */
+    @Test
+    public void testStartOnUnavailablePortThrowsException() throws Exception {
+        // Start a server on an available port
+        Server server1 = new Server();
+        server1.start(0);
+        int usedPort = server1.getPort();
+
+        // Attempt to start another server on the same port, which should fail
+        Server server2 = new Server();
+        try {
+            server2.start(usedPort);
+        } catch (IOException ex) {
+            assertEquals("Address already in use", ex.getMessage());
+        } finally {
+            server1.stop();
+        }
+    }
 }

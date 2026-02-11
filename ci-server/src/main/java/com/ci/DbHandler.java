@@ -1,5 +1,9 @@
 package com.ci;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,24 +14,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DbHandler {
-    private Connection connection;
-    private String dbUrl = "jdbc:sqlite:data/builds.db";
+    private String dbUrl = "jdbc:sqlite:builds.db";
 
     public DbHandler() {
-        this("jdbc:sqlite:data/builds.db");
+        this("data/builds.db");
     }
 
-    public DbHandler(boolean test) {
-        this(test ? "jdbc:sqlite::memory:" : "jdbc:sqlite:data/builds.db");
-    }
-    
     public DbHandler(String dbUrl) {
-        this.dbUrl = dbUrl;
-        try {
-            connection = DriverManager.getConnection(dbUrl);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to connect to database: " + dbUrl, e);
+        Path path = Paths.get(dbUrl);
+        Path parentDir = path.getParent();
+        if (parentDir != null && !Files.exists(parentDir)) {
+            try {
+                Files.createDirectories(parentDir);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create directories for database path: " + dbUrl, e);
+            }
         }
+        this.dbUrl = "jdbc:sqlite:"+dbUrl;
+    }
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(dbUrl);
     }
 
     /**
@@ -42,7 +49,8 @@ public class DbHandler {
             "build_description TEXT,"+  
             "build_date TEXT"+
             ")";
-        try (Statement stm = connection.createStatement();) {
+        try (Connection connection = getConnection();
+            Statement stm = connection.createStatement();) {
             stm.execute(sqlCreate);
         }
         catch (SQLException e) {
@@ -66,7 +74,8 @@ public class DbHandler {
         String sqlInsert = "INSERT INTO builds " +
         "(sha, branch, build_result, build_description, build_date) " +
         "VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stm = connection.prepareStatement(sqlInsert);) {
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlInsert);) {
             stm.setString(1, sha);
             stm.setString(2, branch);
             stm.setString(3, result);
@@ -91,7 +100,8 @@ public class DbHandler {
         String sqlInsert = "INSERT INTO builds " +
         "(sha, branch, build_result, build_description, build_date) " +
         "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
-        try (PreparedStatement stm = connection.prepareStatement(sqlInsert);) {
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlInsert);) {
             stm.setString(1, sha);
             stm.setString(2, branch);
             stm.setString(3, result);
@@ -121,7 +131,8 @@ public class DbHandler {
     public List<BuildEntry> selectAllBuilds() {
         String sqlSelect = "SELECT * FROM builds";
         List<BuildEntry> entries = new ArrayList<>();
-        try (PreparedStatement stm = connection.prepareStatement(sqlSelect);
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlSelect);
             ResultSet rs = stm.executeQuery();) {
             while (rs.next()) {
                 BuildEntry entry = new BuildEntry(
@@ -148,7 +159,8 @@ public class DbHandler {
     public BuildEntry selectBySha(String sha) {
         String sqlSelect = "SELECT * FROM builds WHERE sha = ?";
         BuildEntry build = null;
-        try (PreparedStatement stm = connection.prepareStatement(sqlSelect);) {
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlSelect);) {
             stm.setString(1, sha);
             ResultSet rs = stm.executeQuery();
             if (rs.next()) {  
@@ -177,7 +189,8 @@ public class DbHandler {
     public List<BuildEntry> selectByBranch(String branch) {
         String sqlSelect = "SELECT * FROM builds WHERE branch = ?";
         List<BuildEntry> builds = new ArrayList<>();
-        try (PreparedStatement stm = connection.prepareStatement(sqlSelect);) {
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlSelect);) {
             stm.setString(1, branch);
             ResultSet rs = stm.executeQuery();
             while (rs.next()) {  
@@ -204,7 +217,8 @@ public class DbHandler {
      */
     public void deleteEntry(String sha) {
         String sqlDelete = "DELETE FROM builds WHERE sha = ?";
-        try (PreparedStatement stm = connection.prepareStatement(sqlDelete);) {
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlDelete);) {
             stm.setString(1, sha);
             stm.executeUpdate();
         } catch (SQLException e) {
@@ -222,7 +236,8 @@ public class DbHandler {
      */
     public void updateEntry(String sha, String branch, String result, String description, String date) {
         String sqlUpdate = "UPDATE builds SET branch = ?, build_result = ?, build_description = ?, build_date = ? WHERE sha = ?";
-        try (PreparedStatement stm = connection.prepareStatement(sqlUpdate);) {
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlUpdate);) {
             stm.setString(1, branch);
             stm.setString(2, result);
             stm.setString(3, description);
@@ -244,7 +259,8 @@ public class DbHandler {
      */
     public void updateEntry(String sha, String branch, String result, String description) {
         String sqlUpdate = "UPDATE builds SET branch = ?, build_result = ?, build_description = ? WHERE sha = ?";
-        try (PreparedStatement stm = connection.prepareStatement(sqlUpdate);) {
+        try (Connection connection = getConnection();
+            PreparedStatement stm = connection.prepareStatement(sqlUpdate);) {
             stm.setString(1, branch);
             stm.setString(2, result);
             stm.setString(3, description);
@@ -253,19 +269,6 @@ public class DbHandler {
         }
         catch (SQLException e) {
             throw new RuntimeException("Failed to update entry with sha: " + sha, e);
-        }
-    }
-
-    /**
-     * Closes the database connection.
-     * 
-     * This method should be called when the DbHandler is no longer needed to free up resources.
-     */
-    public void closeConnection() {
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to close database connection: " + dbUrl, e);
         }
     }
 }
