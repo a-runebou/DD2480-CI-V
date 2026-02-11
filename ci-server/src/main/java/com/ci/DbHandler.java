@@ -20,6 +20,10 @@ public class DbHandler {
         this("data/builds.db");
     }
 
+    /**
+     * Constructor that allows specifying a custom database URL. If the specified path does not exist, it will be created.
+     * @param dbUrl the URL of the database to connect to.
+    */
     public DbHandler(String dbUrl) {
         Path path = Paths.get(dbUrl);
         Path parentDir = path.getParent();
@@ -68,7 +72,7 @@ public class DbHandler {
      * @param result the result of the build/test
      * @param description additional description
      * @param date the date and time
-     * @throws SQLException
+     * @throws RuntimeException if the database operation fails
      */
     public void addEntry(String sha, String branch, String result, String description, String date) {
         String sqlInsert = "INSERT INTO builds " +
@@ -95,6 +99,7 @@ public class DbHandler {
      * @param branch related branch
      * @param result the result of the build/test
      * @param description additional description
+     * @throws RuntimeException if the database operation fails
      */
     public void addEntry(String sha, String branch, String result, String description) {
         String sqlInsert = "INSERT INTO builds " +
