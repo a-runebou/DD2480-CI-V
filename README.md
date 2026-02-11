@@ -36,6 +36,7 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
       - [Dev. Alexander Runebou (GitHub: @a-runebou):](#dev-alexander-runebou-github-a-runebou)
     - [Team Contribution:](#team-contribution)
   - [.](#)
+  - [Team Achievements](#team-achievements)
   - [SEMAT](#semat)
   - [License](#license)
 
@@ -183,6 +184,13 @@ All grading actions are to be performed on the branch **`assessment`**.
 .
 .
 ---
+
+## Team Achievements
+During the development of our CI server we focused on building a robust and testable architecture. Some aspects we are particularly proud of include:
+
+- **Testing Strategy**: A combination of unit tests and integration tests was implemented to ensure the reliability of the CI pipeline. We achieved a code coverage of approximately 70%, which we consider a strong indicator of our testing efforts.
+- **Modular Design**: Clear execution logic. Dependency injection allows flexible testing and easier maintenance. Status reporting decoupled from execution logic.
+- **Automation and Quality Assurance**: Maven based build and test automation using GitHub Actions ensured that our code is continuously tested and built, maintaining high code quality throughout development.
 
 ## SEMAT 
 
