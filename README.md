@@ -17,27 +17,20 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
 
 ## Table of Contents
 
-- [DD2480-CI-V](#dd2480-ci-v)
-  - [Summary](#summary)
-  - [Table of Contents](#table-of-contents)
-  - [Project Structure](#project-structure)
-  - [Requirements and Dependencies](#requirements-and-dependencies)
-    - [Build \& Test](#build--test)
-  - [Run the Server](#run-the-server)
-  - [Local Setup with ngrok](#local-setup-with-ngrok)
-  - [Build list URL](#build-list-url)
-  - [Grader's Guide](#graders-guide)
-  - [Statement of Contributions](#statement-of-contributions)
-    - [Individual Contribution:](#individual-contribution)
-      - [Dev. Fabian W (GitHub: @crancker96):](#dev-fabian-w-github-crancker96)
-      - [Dev. Apeel Subedi (GitHub: @rippyboii):](#dev-apeel-subedi-github-rippyboii)
-      - [Dev. Carl Isaksson (GitHub: @carlisaksson):](#dev-carl-isaksson-github-carlisaksson)
-      - [Dev. Josef Kahoun (GitHub: @kahoujo1):](#dev-josef-kahoun-github-kahoujo1)
-      - [Dev. Alexander Runebou (GitHub: @a-runebou):](#dev-alexander-runebou-github-a-runebou)
-    - [Team Contribution:](#team-contribution)
-  - [.](#)
-  - [SEMAT](#semat)
-  - [License](#license)
+- [Summary](#summary)
+- [Table of Contents](#table-of-contents)
+- [Project Structure](#project-structure)
+- [Requirements and Dependencies](#requirements-and-dependencies)
+   - [Build \& Test](#build--test)
+- [Run the Server](#run-the-server)
+- [Local Setup with ngrok](#local-setup-with-ngrok)
+- [Build list URL](#build-list-url)
+- [Grader's Guide](#graders-guide)
+- [Statement of Contributions](#statement-of-contributions)
+   - [Individual Contribution:](#individual-contribution)
+   - [Team Contribution:](#team-contribution)
+- [SEMAT](#semat)
+- [License](#license)
 
 ---
 
@@ -59,22 +52,33 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
 
 
 ## Requirements and Dependencies
-- Java 19 (JDK)
+
+### System Requirements
+- **Java 19+** (JDK) - tested on OpenJDK 19 and 21
 - **Git** installed and available in PATH
-- Internet access for webhooks
+- Internet access for webhooks and GitHub API
 
 Verify your Java installation by running:
 ```bash
 java -version
 ```
 
+### Library Dependencies
+The project uses the following key dependencies (managed via Maven):
+
+| Library | Version | Purpose |
+|---------|---------|--------|
+| Jackson Databind | 2.17.2 | JSON parsing for webhook payloads |
+| SQLite JDBC | 3.45.1.0 | Database for storing build results |
+| JUnit Jupiter | 5.10.2 | Unit testing framework |
+| JaCoCo | 0.8.11 | Code coverage reporting |
 
 ### Build & Test 
 ```bash
 cd ci-server
 ./mvnw clean test
 ```
-Note: This project uses Maven Wrapper, no local Maven installation is required, but Maven version 3.9.12 was used locally.
+Note: This project uses Maven Wrapper, no local Maven installation is required. Tested with Maven 3.9.12.
 
 ---
 
@@ -83,11 +87,14 @@ Note: This project uses Maven Wrapper, no local Maven installation is required, 
 Start the server:
 
 ```bash
-./mvnw exec:java
+cd ci-server
+./mvnw compile exec:java 
 ```
 
-When running, the server exposes:
+The server starts on **port 2485** by default and exposes:
 - `POST /webhook`: GitHub sends push payloads here.
+- `GET /builds`: Returns all saved build entries.
+- `GET /builds/{SHA}`: Returns build info for a specific commit.
 
 ---
 
@@ -96,7 +103,8 @@ To test the CI server locally with GitHub webhooks, you can use [ngrok](https://
 1. Download and install ngrok from the [official website](https://ngrok.com/download).
 2. Start your CI server locally by running:
    ```bash
-   ./mvnw exec:java
+   cd ci-server
+   ./mvnw compile exec:java 
    ```
 3. In a separate terminal, run ngrok to expose your local server (assuming your CI server runs on port `2485` as per default):
    ```bash
@@ -117,47 +125,88 @@ To test the CI server locally with GitHub webhooks, you can use [ngrok](https://
 
 ## Notification of CI results
 The notification of results was implemented using **commit statuses** via the GitHub REST API.
-Settings for the notification must be stored inside file `ci-server/src/main/resources/token.config` (note that the file is missing on GitHub, and needs to be set up manually).
 
-The configuration file must include the following entries:
-```
-owner: <OWNER_NAME>
-repo: <REPO_NAME>
-token: <TOKEN>
-```
-Note: The `token.config` file must be added in following paths for the program to build:
+### Token Configuration
+Settings for the notification must be stored in a `token.config` file. **This file must never be committed to the repository.**
+
+1. Add your `token.config` file at following locations:
    - `ci-server/src/main/resources/token.config`
    - `ci-server/src/test/resources/token.config`
 
 
+2. Edit the file with your credentials:
+   ```
+   owner: <GITHUB_USERNAME_OR_ORG>
+   repo: <REPO_NAME>
+   token: <GITHUB_PERSONAL_ACCESS_TOKEN>
+   ```
 
-To post commit statuses, the server needs a GitHub token.
+> ⚠️ **Security Warning**: The `token.config` files are in `.gitignore` to prevent accidental commits. Never commit tokens to the repository.
+
+### GitHub Token Setup
+To post commit statuses, the server needs a GitHub personal access token with `repo:status` permission.
 We recommend using fine-grained personal access tokens, [see GitHub Authentication](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
-The notifications are sent using the `StatusPoster` class, which allows
-- Setting the commit status to one of the following values: `'error'`, `'pending'`, `'failure'`, or `'success'`. 
-- Adding a description for the status.
-- Adding a URL associated with the CI job.
+### Testing Without Real GitHub Token
+For unit tests, the `StatusPosterAdapter` class wraps the real `StatusPoster` and can be replaced with a mock `StatusReporter` interface for testing without making actual API calls. See `CIPipelineTest.java` for examples.
 
-For more information, please refer to the `StatusPoster` implementation.
+The notifications are sent using the `StatusPoster` class, which allows:
+- Setting the commit status to one of: `'error'`, `'pending'`, `'failure'`, or `'success'`
+- Adding a description for the status
+- Adding a URL associated with the CI job
+
+For more information, refer to the `StatusPoster` implementation.
 
 
 ---
 
 ## Build list URL
-The CI server saves results of the individual builds inside a database. Specifically, the commit SHA, build/test result, short build/test description, and build date are saved for each commit received.
+The CI server saves results of the individual builds inside a SQLite database. Specifically, the commit SHA, build/test result, short build/test description, and build date are saved for each commit received.
 
-To view the saved entries, you can use the public REST API by sending GET HTTP requests, specifically:
-- `\builds` returns information about all saved entries.
-- `\builds\{SHA}` returns information about the entry with the given SHA, granted such entry exists 
+To view the saved entries, you can use the REST API by sending GET HTTP requests:
+- `GET /builds` - returns information about all saved entries (JSON array)
+- `GET /builds/{SHA}` - returns information about the entry with the given commit SHA
+
+Example:
+```bash
+curl http://localhost:2485/builds
+curl http://localhost:2485/builds/abc123
+``` 
 
 
 ---
 
 ## Grader's Guide
 
- `assessment` branch is made for grading reference.
-All grading actions are to be performed on the branch **`assessment`**.  
+All grading actions should be performed on the **`assessment`** branch.
+
+### How the CI Pipeline Works
+When a push event is received via webhook, the pipeline:
+1. Extracts the `branch` and `commit SHA` from the JSON payload's `ref` and `after` fields
+2. Clones the repository and checks out the specific commit
+3. Detects the project directory (looks for `pom.xml` in root or `ci-server/` subdirectory)
+4. Runs `./mvnw test` (or `mvn test` if no wrapper exists)
+5. Reports success/failure as a GitHub commit status
+
+### Testing the Webhook Locally
+```bash
+# Start the server
+cd ci-server
+./mvnw compile exec:java -Dexec.mainClass="com.ci.App"
+
+# In another terminal, send a test webhook
+curl -X POST "http://localhost:2485/webhook" \
+  -H "Content-Type: application/json" \
+  -d '{"ref":"refs/heads/assessment","after":"<COMMIT_SHA>","repository":{"clone_url":"https://github.com/a-runebou/DD2480-CI-V.git"}}'
+```
+Replace `<COMMIT_SHA>` with a valid commit that exists on GitHub.
+
+### Generating Javadoc
+```bash
+cd ci-server
+./mvnw javadoc:javadoc
+# Output: target/site/apidocs/index.html
+```  
 
 
 ## Statement of Contributions
@@ -184,10 +233,12 @@ All grading actions are to be performed on the branch **`assessment`**.
 
 
 ### Team Contribution:
-.
-.
-.
-.
+> **Two-Stage Branch Protection (dev -> main):**  
+We implemented a two-branch workflow with protection rules on both `dev` and `main`. Feature and fix branches are merged into `dev` via pull requests requiring at least two approvals and a passing CI check. The `main` branch is reserved for stable, reviewed changes. This setup keeps `main` consistently stable while allowing collaborative development on `dev`.
+
+> **Conventional Commits & Consistent Naming:**  
+We followed the Conventional Commits specification for commit messages throughout the project (e.g., `feat:`, `fix:`, `refactor:`, `test:`, `docs:`), making the change history easy to scan and review. In addition, we maintained consistent naming conventions across the codebase (classes, methods, variables, and packages) to keep the project readable and predictable for all team members.
+
 ---
 
 ## SEMAT 
