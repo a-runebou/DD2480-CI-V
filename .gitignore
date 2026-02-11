@@ -15,3 +15,13 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# Sensitive config files
+token.config
+# token config file
+ci-server/src/main/resources/token.config
+
+# database files
+ci-server/data
+
+*.db
