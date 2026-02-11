@@ -11,6 +11,10 @@ public class CIPipeline {
     private final CommandRunner runner;
     private final StatusReporter statusReporter;
 
+    private static final String CI_CONTEXT = "ci-server";
+    private static final String TOKEN_CONFIG_SRC = "../token.config";
+    private static final String TOKEN_CONFIG_DEST = "ci-server/src/main/resources/token.config";
+
     /**
      * Prefer using this constructor from Server (composition root):
      * new CIPipeline(new GitCheckoutService(), new CommandRunner(), realStatusReporter)
@@ -41,8 +45,15 @@ public class CIPipeline {
 
             System.out.println("[CI] TEST");
 
-            // Change directory TODO: Make this dynamic
-            dir = dir.resolve("ci-server");
+            // TODO: Make this dynamic
+            // Copy token.config into the repo directory for tests that need it
+            Path source = Path.of(TOKEN_CONFIG_SRC).toAbsolutePath();
+            Path dest = dir.resolve(TOKEN_CONFIG_DEST);
+            Files.createDirectories(dest.getParent());
+            runner.run(dir, "cp", source.toString(), dest.toString());
+
+            // Change directory 
+            dir = dir.resolve(CI_CONTEXT);
 
             int exit;
             Path mvnw = dir.resolve("mvnw");
