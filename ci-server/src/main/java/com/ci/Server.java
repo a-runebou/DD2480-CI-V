@@ -13,6 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+/**
+ * The Server class is responsible for handling incoming HTTP requests, particularly GitHub webhook events.
+ * It processes the webhook payload, checks out the relevant code from the repository, compiles it, and posts status updates to GitHub.
+ * It also provides endpoints to retrieve build information from the database.
+ */
 public class Server {
     private HttpServer server;
     private final DbHandler dbHandler;
@@ -75,6 +80,7 @@ public class Server {
 
     /** 
      * Starts the server.
+     * @param port the port number to listen on.
      * @throws IOException if the server fails to start.
      */
     public void start(int port) throws IOException {
