@@ -173,7 +173,7 @@ All grading actions are to be performed on the branch **`assessment`**.
 > Commit Status posting, Database handling, REST API for the database, Documentation
 
 #### Dev. Alexander Runebou (GitHub: @a-runebou):
->  .......
+>  Project structure, HTTP server, Webhook handling, Documentation, Bug fixes, Code coverage
 
 
 
