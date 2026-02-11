@@ -1,8 +1,10 @@
 package com.ci;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,6 +26,8 @@ public class ServerTest {
     private Server server;
     private int port;
     private CountDownLatch pipelineLatch;
+    private String dbUrl;
+    private File tempDbFile;
     
     private static final String VALID_PAYLOAD = """
         {
@@ -71,6 +75,8 @@ public class ServerTest {
     @BeforeEach
     public void setUp() throws Exception {
         pipelineLatch = new CountDownLatch(1);
+        tempDbFile = Files.createTempFile("testdb", ".db").toFile();
+        dbUrl = tempDbFile.getAbsolutePath();
         
         // Create a fake pipeline that counts down when called
         CIPipeline fakePipeline = new CIPipeline(fakeReporter()) {
@@ -81,7 +87,7 @@ public class ServerTest {
             }
         };
         
-        server = new Server(fakePipeline, testExecutor());
+        server = new Server(fakePipeline, testExecutor(), dbUrl);
         server.start(0);
         port = server.getPort();
     }
@@ -90,6 +96,9 @@ public class ServerTest {
     public void tearDown() throws Exception {
         if (server != null) {
             server.stop();
+        }
+        if (tempDbFile != null && tempDbFile.exists()) {
+            tempDbFile.delete();
         }
     }
 

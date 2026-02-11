@@ -1,11 +1,14 @@
 package com.ci;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.ci.checkout.GitCheckoutService;
+import com.ci.statuses.StatusPoster;
+import com.ci.rest.AllBuildsHandler;
+import com.ci.rest.BuildByShaHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,6 +19,7 @@ import com.sun.net.httpserver.HttpServer;
 
 public class Server {
     private HttpServer server;
+    private final DbHandler dbHandler;
     private static boolean DEBUG = true;
 
     private final ExecutorService exec;
@@ -37,6 +41,30 @@ public class Server {
         this.server = null;
         this.pipeline = pipeline;
         this.exec = exec;
+        this.dbHandler = new DbHandler();
+        dbHandler.createBuildTable();
+    }
+
+    /**
+     * Constructor for testing with a specific database.
+     * @param dbUrl the database URL to use
+     */
+    public Server(String dbUrl) {
+        this(new CIPipeline(new StatusPosterAdapter()), Executors.newFixedThreadPool(2), dbUrl);
+    }
+
+    /**
+     * Full test constructor: allows injection of pipeline, executor, and database.
+     * @param pipeline the CI pipeline to use for processing webhooks
+     * @param exec the executor service for running pipeline tasks
+     * @param dbUrl the database URL to use
+     */
+    public Server(CIPipeline pipeline, ExecutorService exec, String dbUrl) {
+        this.server = null;
+        this.pipeline = pipeline;
+        this.exec = exec;
+        this.dbHandler = new DbHandler(dbUrl);
+        dbHandler.createBuildTable();
     }
 
     /**
@@ -54,6 +82,8 @@ public class Server {
     public void start(int port) throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
         this.server.createContext("/webhook", exchange -> handleRequest(exchange, pipeline, exec));
+        this.server.createContext("/builds", new AllBuildsHandler(this.dbHandler));
+        this.server.createContext("/builds/", new BuildByShaHandler(this.dbHandler));
         this.server.setExecutor(null);
         this.server.start();
 
@@ -167,6 +197,9 @@ public class Server {
                     pipeline.run(repoUrl, branch, sha);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    try {
+                        new StatusPoster().postStatus(sha, "error", "", "CI: server error");
+                    } catch (Exception ignored) {}
                 }
             });
 
