@@ -159,7 +159,7 @@ All grading actions are to be performed on the branch **`assessment`**.
 
 ### Individual Contribution:
 #### Dev. Fabian W (GitHub: @crancker96): 
-> ..........
+> Dummy Class, Documentation, Bug fixes
 
 
 #### Dev. Apeel Subedi (GitHub: @rippyboii):
