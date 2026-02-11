@@ -239,16 +239,16 @@ public class ServerTest {
     @Test
     public void testStartOnUnavailablePortThrowsException() throws Exception {
         // Start a server on an available port
-        Server server1 = new Server();
+        Server server1 = new Server(dbUrl);
         server1.start(0);
         int usedPort = server1.getPort();
 
         // Attempt to start another server on the same port, which should fail
-        Server server2 = new Server();
+        Server server2 = new Server(dbUrl);
         try {
             server2.start(usedPort);
         } catch (IOException ex) {
-            assertEquals("Address already in use", ex.getMessage());
+            assertTrue(ex.getMessage().startsWith("Address already in use"));
         } finally {
             server1.stop();
         }

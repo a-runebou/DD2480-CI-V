@@ -1,19 +1,25 @@
 package com.ci.pipeline;
 
-import com.ci.checkout.GitCheckoutService;
-import com.ci.statuses.StatusPosterAdapter;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
  * Orchestrates the CI pipeline: checks out code, runs tests, and posts status updates.
  */
+import com.ci.DbHandler;
+import com.ci.checkout.GitCheckoutService;
+import com.ci.statuses.StatusPosterAdapter;
+
 public class CIPipeline {
     private final GitCheckoutService checkoutService;
     private final CommandRunner runner;
     private final StatusReporter statusReporter;
 
+    private static final String CI_CONTEXT = "ci-server";
+    private static final String TOKEN_CONFIG_SRC = "../token.config";
+    private static final String TOKEN_CONFIG_DEST = "ci-server/src/main/resources/token.config";
+
+    private DbHandler dbHandler;
     /**
      * Prefer using this constructor from Server (composition root):
      * new CIPipeline(new GitCheckoutService(), new CommandRunner(), realStatusReporter)
@@ -22,6 +28,7 @@ public class CIPipeline {
         this.checkoutService = checkoutService;
         this.runner = runner;
         this.statusReporter = statusReporter;
+        this.dbHandler = new DbHandler();
     }
 
     /**
@@ -31,21 +38,40 @@ public class CIPipeline {
         this(new GitCheckoutService(), new CommandRunner(), new StatusPosterAdapter());
     }
 
+
+    /**
+     * Sets the database handler to use for recording build statuses.
+     * 
+     * This is primarily intended for testing, where a mock database can be injected.
+     * 
+     * @param dbHandler the database handler to use
+     */
+    public void setDbHandler(DbHandler dbHandler) {
+        this.dbHandler = dbHandler;
+    }
+
     public void run(String repoUrl, String branch, String sha) {
         System.out.println("[CI] START branch=" + branch + " sha=" + shortSha(sha));
 
         Path dir = null;
         try {
             safePending(sha, "CI running");
-
+            dbHandler.addEntry(sha, branch, "pending");
             System.out.println("[CI] CHECKOUT");
             dir = checkoutService.checkout(repoUrl, branch, sha);
             System.out.println("[CI] CHECKOUT OK dir=" + dir);
 
             System.out.println("[CI] TEST");
 
-            // Change directory TODO: Make this dynamic
-            dir = dir.resolve("ci-server");
+            // TODO: Make this dynamic
+            // Copy token.config into the repo directory for tests that need it
+            Path source = Path.of(TOKEN_CONFIG_SRC).toAbsolutePath();
+            Path dest = dir.resolve(TOKEN_CONFIG_DEST);
+            Files.createDirectories(dest.getParent());
+            runner.run(dir, "cp", source.toString(), dest.toString());
+
+            // Change directory 
+            dir = dir.resolve(CI_CONTEXT);
 
             int exit;
             Path mvnw = dir.resolve("mvnw");
@@ -57,14 +83,20 @@ public class CIPipeline {
                 exit = runner.run(dir, "mvn", "test");
             }
 
-            if (exit == 0) safeSuccess(sha, "CI passed");
-            else safeFailure(sha, "CI failed (exit=" + exit + ")");
+            if (exit == 0) {
+                safeSuccess(sha, "CI passed");
+                dbHandler.updateEntry(sha, branch, "success", "CI passed");
+            } else {
+                safeFailure(sha, "CI failed (exit=" + exit + ")");
+                dbHandler.updateEntry(sha, branch, "failure", "CI failed (exit=" + exit + ")");
+            }
 
         } catch (Exception e) {
             String msg = (e.getMessage() == null) ? e.getClass().getSimpleName() : e.getMessage();
             System.out.println("[CI] ERROR " + msg);
             e.printStackTrace();
             safeError(sha, "CI error: " + msg);
+            dbHandler.updateEntry(sha, branch, "error", "Error during CI: " + msg);
         } finally {
             if (dir != null) {
                 System.out.println("[CI] CLEANUP " + dir);
