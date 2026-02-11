@@ -41,6 +41,9 @@ public class CIPipeline {
 
             System.out.println("[CI] TEST");
 
+            // Change directory TODO: Make this dynamic
+            dir = dir.resolve("ci-server");
+
             int exit;
             Path mvnw = dir.resolve("mvnw");
 
