@@ -5,23 +5,32 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.sun.net.httpserver.HttpServer;
+import com.ci.checkout.GitCheckoutService;
+import com.ci.pipeline.CIPipeline;
+import com.ci.pipeline.CommandRunner;
+import com.ci.pipeline.StatusReporter;
 
 
 public class ServerTest {
 
     
     private Server server;
-    private HttpServer httpServer;
     private int port;
+    private CountDownLatch pipelineLatch;
     private String dbUrl;
     private File tempDbFile;
+    
     private static final String VALID_PAYLOAD = """
         {
             "ref": "refs/heads/main",
@@ -41,13 +50,46 @@ public class ServerTest {
     }
     """;
 
+    /**
+     * Creates a fake StatusReporter that does nothing.
+     */
+    private static StatusReporter fakeReporter() {
+        return new StatusReporter() {
+            @Override public void pending(String sha, String desc) {}
+            @Override public void success(String sha, String desc) {}
+            @Override public void failure(String sha, String desc) {}
+            @Override public void error(String sha, String desc) {}
+        };
+    }
+
+    /**
+     * Creates a single-thread executor with daemon threads for tests.
+     * Daemon threads won't prevent JVM shutdown between tests.
+     */
+    private static ExecutorService testExecutor() {
+        return Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+        });
+    }
 
     @BeforeEach
     public void setUp() throws Exception {
+        pipelineLatch = new CountDownLatch(1);
         tempDbFile = Files.createTempFile("testdb", ".db").toFile();
         dbUrl = tempDbFile.getAbsolutePath();
-        // Initialize the database with test data 
-        server = new Server(dbUrl);
+        
+        // Create a fake pipeline that counts down when called
+        CIPipeline fakePipeline = new CIPipeline(new GitCheckoutService(), new CommandRunner(), fakeReporter()) {
+            @Override
+            public void run(String repoUrl, String branch, String sha) {
+                pipelineLatch.countDown();
+                // Don't do any real work - no git clone, no maven
+            }
+        };
+        
+        server = new Server(fakePipeline, testExecutor(), dbUrl);
         server.start(0);
         port = server.getPort();
     }
@@ -69,6 +111,7 @@ public class ServerTest {
      * 
      * Expected Behavior:
      * The server processes the POST request to /webhook and returns a 200 OK response.
+     * The pipeline should be called with the extracted parameters.
      */
     @Test
     public void testWebhookPostReturns200() throws Exception {
@@ -79,6 +122,10 @@ public class ServerTest {
         connection.getOutputStream().write(VALID_PAYLOAD.getBytes());
         int responseCode = connection.getResponseCode();
         assertEquals(200, responseCode);
+        
+        // Wait for async pipeline to be called (max 5 seconds)
+        boolean called = pipelineLatch.await(5, TimeUnit.SECONDS);
+        assertTrue(called, "Pipeline should have been called for valid webhook");
     }
 
 
