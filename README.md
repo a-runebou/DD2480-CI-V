@@ -28,7 +28,7 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
 - [Grader's Guide](#graders-guide)
 - [Statement of Contributions](#statement-of-contributions)
    - [Individual Contribution:](#individual-contribution)
-   - [Team Contribution:](#team-contribution)
+- [Team Achievements:](#team-achievements)
 - [SEMAT](#semat)
 - [License](#license)
 
@@ -231,22 +231,22 @@ cd ci-server
 >  Project structure, HTTP server, Webhook handling, Documentation, Bug fixes, Code coverage
 
 
-
-### Team Contribution:
-> **Two-Stage Branch Protection (dev -> main):**  
-We implemented a two-branch workflow with protection rules on both `dev` and `main`. Feature and fix branches are merged into `dev` via pull requests requiring at least two approvals and a passing CI check. The `main` branch is reserved for stable, reviewed changes. This setup keeps `main` consistently stable while allowing collaborative development on `dev`.
-
-> **Conventional Commits & Consistent Naming:**  
-We followed the Conventional Commits specification for commit messages throughout the project (e.g., `feat:`, `fix:`, `refactor:`, `test:`, `docs:`), making the change history easy to scan and review. In addition, we maintained consistent naming conventions across the codebase (classes, methods, variables, and packages) to keep the project readable and predictable for all team members.
-
 ---
 
 ## Team Achievements
 During the development of our CI server we focused on building a robust and testable architecture. Some aspects we are particularly proud of include:
 
-- **Testing Strategy**: A combination of unit tests and integration tests was implemented to ensure the reliability of the CI pipeline. We achieved a code coverage of approximately 70%, which we consider a strong indicator of our testing efforts.
-- **Modular Design**: Clear execution logic. Dependency injection allows flexible testing and easier maintenance. Status reporting decoupled from execution logic.
-- **Automation and Quality Assurance**: Maven based build and test automation using GitHub Actions ensured that our code is continuously tested and built, maintaining high code quality throughout development.
+> **Testing Strategy**: A combination of unit tests and integration tests was implemented to ensure the reliability of the CI pipeline. We achieved a code coverage of approximately 70%, which we consider a strong indicator of our testing efforts.
+
+> **Modular Design**: Clear execution logic. Dependency injection allows flexible testing and easier maintenance. Status reporting decoupled from execution logic.
+
+> **Automation and Quality Assurance**: Maven based build and test automation using GitHub Actions ensured that our code is continuously tested and built, maintaining high code quality throughout development.
+
+> **Two-Stage Branch Protection (dev -> main):**  
+We implemented a two-branch workflow with protection rules on both `dev` and `main`. Feature and fix branches are merged into `dev` via pull requests requiring at least two approvals and a passing CI check. The `main` branch is reserved for stable, reviewed changes. This setup keeps `main` consistently stable while allowing collaborative development on `dev`.
+
+> **Conventional Commits & Consistent Naming:**  
+We followed the Conventional Commits specification for commit messages throughout the project (e.g., `feat:`, `fix:`, `refactor:`, `test:`, `docs:`), making the change history easy to scan and review. In addition, we maintained consistent naming conventions across the codebase (classes, methods, variables, and packages) to keep the project readable and predictable for all team members.
 
 ## SEMAT 
 
