@@ -68,7 +68,6 @@ public class DbHandler {
      * @param result the result of the build/test
      * @param description additional description
      * @param date the date and time
-     * @throws SQLException
      */
     public void addEntry(String sha, String branch, String result, String description, String date) {
         String sqlInsert = "INSERT INTO builds " +

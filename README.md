@@ -125,6 +125,12 @@ owner: <OWNER_NAME>
 repo: <REPO_NAME>
 token: <TOKEN>
 ```
+Note: The `token.config` file must be added in following paths for the program to build:
+   - `ci-server/src/main/resources/token.config`
+   - `ci-server/src/test/resources/token.config`
+
+
+
 To post commit statuses, the server needs a GitHub token.
 We recommend using fine-grained personal access tokens, [see GitHub Authentication](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
