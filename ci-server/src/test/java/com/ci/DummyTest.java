@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 public class DummyTest {
     @Test
     public void testMult() {
-        int a = 5;
+        int a = 5
         int b = 4;
         int result = 20;
         int mult_result = Dummy.multiply(a, b);
