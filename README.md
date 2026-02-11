@@ -139,7 +139,11 @@ For more information, please refer to the `StatusPoster` implementation.
 ---
 
 ## Build list URL
+The CI server saves results of the individual builds inside a database. Specifically, the commit SHA, build/test result, short build/test description, and build date are saved for each commit received.
 
+To view the saved entries, you can use the public REST API by sending GET HTTP requests, specifically:
+- `\builds` returns information about all saved entries.
+- `\builds\{SHA}` returns information about the entry with the given SHA, granted such entry exists 
 
 
 ---
