@@ -1,15 +1,23 @@
 package com.ci.checkout;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assumptions;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 public class GitCheckoutServiceTest {
 
@@ -201,5 +209,52 @@ public class GitCheckoutServiceTest {
                     try { Files.deleteIfExists(path); }
                     catch (IOException ignored) {}
                 });
+    }
+
+
+    /**
+     * Contract:
+     * The checkout() method shall clean up any temporary directories it creates 
+     * if an error occurs during the checkout process (e.g., invalid repository URL).
+     * 
+     * Expected behavior:
+     * Given an invalid repository URL, the method shall throw an exception and no 
+     * temporary directories starting with "ci-checkout-" shall remain in the system's 
+     * temp directory after the method returns.
+     */
+    @Test
+    void checkoutShouldCleanupTempDirOnFailure() throws IOException, InterruptedException {
+        Assumptions.assumeTrue(isGitAvailable(), "Git not available, skipping test");
+
+        GitCheckoutService svc = new GitCheckoutService();
+
+        // Get all current temp directories before the test
+        Set<Path> beforeDirs = listCheckoutDirs();
+
+        try {
+            svc.checkout(
+                "https://github.com/somenonexistent/repo-that-does-not-exist-lol.git",
+                "main",
+                null
+            );
+            fail("Exception ignored");
+        } catch (Exception e) {}
+
+        // Get all temp directories after the test
+        Set<Path> afterDirs = listCheckoutDirs();
+
+        // The difference should be empty
+        afterDirs.removeAll(beforeDirs);
+        assertTrue(afterDirs.isEmpty(), "No new temp directories should remain after failure");
+    }
+
+
+    private Set<Path> listCheckoutDirs() throws IOException {
+        Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+        try (Stream<Path> paths = Files.list(tempDir)) {
+            return paths
+                .filter(p -> p.getFileName().toString().startsWith("ci-checkout-"))
+                .collect(Collectors.toSet());
+        }
     }
 }
