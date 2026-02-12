@@ -263,7 +263,7 @@ We followed the Conventional Commits specification for commit messages throughou
 
 Our team is currently in the Collaborating state. The mission, roles, responsibilities, and communication methods are defined, and team members work together toward shared goals. 
 
-For a detailed description, see our Wiki page at: [Way of Working documentation](https://github.com/a-runebou/DD2480-CI-V/wiki/Progress-of-the-Team).
+For a detailed description, see our Wiki page at: [Team State - Progress of the team](https://github.com/a-runebou/DD2480-CI-V/wiki/Progress-of-the-Team).
 
 ---
 
