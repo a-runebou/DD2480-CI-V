@@ -22,6 +22,10 @@ public class BuildEntry {
         this.buildDate = date;
     }
 
+    /**
+     * Returns a string representation of the BuildEntry object, including the SHA, branch, build result, description, and date.
+     * @return a string representation of the BuildEntry object
+     */
     @Override
     public String toString() {
         return "Entry: sha = " + sha + ", branch = " + branch + ", result = " +buildResult + ", description = " + buildDescription + ", date = " + buildDate;

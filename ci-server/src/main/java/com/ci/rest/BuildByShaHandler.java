@@ -8,6 +8,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+/**
+ * The BuildByShaHandler class is responsible for handling HTTP GET requests to retrieve build information by SHA.
+ * Expects the request path to be in the format /builds/{sha}, where {sha} is the commit SHA.
+ * Responds with a JSON object containing the build information for the specified SHA.
+ */
 public class BuildByShaHandler implements HttpHandler {
     private final static ObjectMapper objectMapper = new ObjectMapper();
     private final DbHandler dbHandler;
