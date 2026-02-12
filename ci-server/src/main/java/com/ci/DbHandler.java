@@ -42,7 +42,7 @@ public class DbHandler {
         this.dbUrl = "jdbc:sqlite:"+dbUrl;
     }
 
-    private Connection getConnection() throws SQLException {
+    protected Connection getConnection() throws SQLException {
         return DriverManager.getConnection(dbUrl);
     }
 
