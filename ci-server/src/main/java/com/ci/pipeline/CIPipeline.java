@@ -3,9 +3,6 @@ package com.ci.pipeline;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Orchestrates the CI pipeline: checks out code, runs tests, and posts status updates.
- */
 import com.ci.DbHandler;
 import com.ci.checkout.GitCheckoutService;
 import com.ci.statuses.StatusPosterAdapter;
@@ -75,20 +72,20 @@ public class CIPipeline {
 
             int exit;
             Path mvnw = dir.resolve("mvnw");
-
+            CommandRunner.TestResult result;
             if (Files.exists(mvnw)) {
                 runner.run(dir, "chmod", "+x", "mvnw");
-                exit = runner.run(dir, "./mvnw", "test");
+                result = runner.run(dir, "./mvnw", "test");
             } else {
-                exit = runner.run(dir, "mvn", "test");
+                result = runner.run(dir, "mvn", "test");
             }
-
+            exit = result.exitCode();
             if (exit == 0) {
                 safeSuccess(sha, "CI passed");
-                dbHandler.updateEntry(sha, branch, "success", "CI passed");
+                dbHandler.updateEntry(sha, branch, "success", result.logs());
             } else {
                 safeFailure(sha, "CI failed (exit=" + exit + ")");
-                dbHandler.updateEntry(sha, branch, "failure", "CI failed (exit=" + exit + ")");
+                dbHandler.updateEntry(sha, branch, "failure", result.logs());
             }
 
         } catch (Exception e) {

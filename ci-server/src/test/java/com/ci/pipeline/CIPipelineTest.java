@@ -131,7 +131,7 @@ public class CIPipelineTest {
 
         void setExitCode(int exitCode) { this.exitCode = exitCode; }
 
-        @Override public int run(Path cwd, String... cmd) { return exitCode; }
+        @Override public TestResult run(Path cwd, String... cmd) { return new TestResult(exitCode, "Simulated command output"); }
         @Override public void deleteRecursively(Path root) {}
     }
 }

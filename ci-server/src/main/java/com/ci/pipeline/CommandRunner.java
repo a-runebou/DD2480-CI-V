@@ -2,12 +2,14 @@ package com.ci.pipeline;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Comparator;
 
 public class CommandRunner {
+    public record TestResult(int exitCode, String logs) {}
 
-    public int run(Path cwd, String... cmd) throws IOException, InterruptedException {
+    public TestResult run(Path cwd, String... cmd) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.directory(cwd.toFile());
         pb.redirectErrorStream(true);
@@ -22,7 +24,7 @@ public class CommandRunner {
         System.out.println("[CI] CMD: " + String.join(" ", cmd));
         System.out.println(out);
 
-        return code;
+        return new TestResult(code, out);
     }
 
     public void deleteRecursively(Path root) {
