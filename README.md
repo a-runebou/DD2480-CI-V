@@ -2,6 +2,7 @@
 
 # DD2480-CI-V
 TEST LINE
+TEST LINE
 ## Summary
 This project implements a minimal Continuous Integration (CI) server in Java, designed to demonstrate the core principles of continuous integration. The server listens for GitHub webhook events, checks out the affected branch, compiles the project, executes automated tests, and reports build results back to GitHub using commit status notifications.
 
