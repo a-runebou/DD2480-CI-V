@@ -6,8 +6,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.lang.ProcessBuilder;
 
+/**
+ * The ExecuteTest class is responsible for executing the test suite and posting the results to GitHub.
+ * It runs the tests using Maven, collects the results, and uses the StatusPoster to update the status on GitHub.
+ */
 public class ExecuteTest {
-    /*
+    /**
      * Executes the test suite and posts the results along with a specified URL to github.
      * @param sha the commit SHA to associate with the test results.
      * @param targetUrl the URL to post the test results to.
@@ -44,16 +48,21 @@ public class ExecuteTest {
 
 
     }
-        private static String readFile(String fileName){
-        StringBuilder result = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader("target/surefire-reports/com.ci."+fileName))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                result.append(line).append("\n");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    /**
+     * Reads the content of a file and returns it as a string.
+     * @param fileName
+     * @return the content of the file as a string, or an empty string if the file is not found or an error occurs.
+     */
+    private static String readFile(String fileName){
+    StringBuilder result = new StringBuilder();
+    try (BufferedReader br = new BufferedReader(new FileReader("target/surefire-reports/com.ci."+fileName))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            result.append(line).append("\n");
         }
-        return result.toString();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return result.toString();
     }
 }

@@ -5,6 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+/**
+ * The CompileRunner class is responsible for executing the Maven compile command in a given repository directory.
+ * It captures the output and error messages from the process and returns them along with the exit code.
+ */
 public class CompileRunner {
 
     /**
