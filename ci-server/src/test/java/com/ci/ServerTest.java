@@ -237,7 +237,7 @@ public class ServerTest {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         int responseCode = connection.getResponseCode();
-        assertEquals(404, responseCode);
+        assertEquals(406, responseCode);
     }
 
     /**
