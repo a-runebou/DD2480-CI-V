@@ -1,7 +1,7 @@
 ![Maven Build and Test](https://github.com/a-runebou/DD2480-CI-V/actions/workflows/maven.yml/badge.svg)
 
 # DD2480-CI-V
-
+TEST LINE
 ## Summary
 This project implements a minimal Continuous Integration (CI) server in Java, designed to demonstrate the core principles of continuous integration. The server listens for GitHub webhook events, checks out the affected branch, compiles the project, executes automated tests, and reports build results back to GitHub using commit status notifications.
 
@@ -17,20 +17,30 @@ This project implements a minimal Continuous Integration (CI) server in Java, de
 
 ## Table of Contents
 
-- [Summary](#summary)
-- [Table of Contents](#table-of-contents)
-- [Project Structure](#project-structure)
-- [Requirements and Dependencies](#requirements-and-dependencies)
-   - [Build \& Test](#build--test)
-- [Run the Server](#run-the-server)
-- [Local Setup with ngrok](#local-setup-with-ngrok)
-- [Build list URL](#build-list-url)
-- [Grader's Guide](#graders-guide)
-- [Statement of Contributions](#statement-of-contributions)
-   - [Individual Contribution:](#individual-contribution)
-- [Team Achievements:](#team-achievements)
-- [SEMAT](#semat)
-- [License](#license)
+- [DD2480-CI-V](#dd2480-ci-v)
+  - [Summary](#summary)
+  - [Table of Contents](#table-of-contents)
+  - [Project Structure](#project-structure)
+  - [Requirements and Dependencies](#requirements-and-dependencies)
+    - [System Requirements](#system-requirements)
+    - [Library Dependencies](#library-dependencies)
+    - [Build \& Test](#build--test)
+  - [Run the Server](#run-the-server)
+  - [Local Setup with ngrok](#local-setup-with-ngrok)
+  - [Grader's Guide](#graders-guide)
+    - [How the CI Pipeline Works](#how-the-ci-pipeline-works)
+    - [Testing the Webhook Locally](#testing-the-webhook-locally)
+    - [Generating Javadoc](#generating-javadoc)
+  - [Statement of Contributions](#statement-of-contributions)
+    - [Individual Contribution:](#individual-contribution)
+      - [Dev. Fabian W (GitHub: @crancker96):](#dev-fabian-w-github-crancker96)
+      - [Dev. Apeel Subedi (GitHub: @rippyboii):](#dev-apeel-subedi-github-rippyboii)
+      - [Dev. Carl Isaksson (GitHub: @carlisaksson):](#dev-carl-isaksson-github-carlisaksson)
+      - [Dev. Josef Kahoun (GitHub: @kahoujo1):](#dev-josef-kahoun-github-kahoujo1)
+      - [Dev. Alexander Runebou (GitHub: @a-runebou):](#dev-alexander-runebou-github-a-runebou)
+  - [Team Achievements](#team-achievements)
+  - [SEMAT](#semat)
+  - [License](#license)
 
 ---
 
