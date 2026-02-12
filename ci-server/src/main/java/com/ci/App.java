@@ -7,6 +7,10 @@ import java.io.IOException;
  * It initializes and starts the HTTP server to listen for incoming requests.
  */
 public class App {
+    /**
+     * The main method initializes the Server instance and starts it on port 2485.
+     * @param args
+     */
     public static void main( String[] args ) {
         Server server = new Server();
         try {

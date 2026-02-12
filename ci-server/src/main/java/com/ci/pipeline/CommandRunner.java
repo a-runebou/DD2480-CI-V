@@ -11,6 +11,14 @@ import java.util.Comparator;
  */
 public class CommandRunner {
 
+    /**
+     * Runs the specified command in the given working directory and returns the exit code.
+     * @param cwd
+     * @param cmd
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public int run(Path cwd, String... cmd) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.directory(cwd.toFile());
@@ -28,7 +36,10 @@ public class CommandRunner {
 
         return code;
     }
-
+    /**
+     * Deletes the specified directory and all of its contents recursively.
+     * @param root
+     */
     public void deleteRecursively(Path root) {
         try {
             if (root == null || !Files.exists(root)) return;

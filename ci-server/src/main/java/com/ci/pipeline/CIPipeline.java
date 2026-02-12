@@ -50,7 +50,12 @@ public class CIPipeline {
     public void setDbHandler(DbHandler dbHandler) {
         this.dbHandler = dbHandler;
     }
-
+    /**
+     * Runs the CI pipeline for the specified repository URL, branch, and commit SHA.
+     * @param repoUrl
+     * @param branch
+     * @param sha
+     */
     public void run(String repoUrl, String branch, String sha) {
         System.out.println("[CI] START branch=" + branch + " sha=" + shortSha(sha));
 

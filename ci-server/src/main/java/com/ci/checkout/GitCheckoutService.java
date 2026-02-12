@@ -13,6 +13,15 @@ import java.util.List;
  */
 public class GitCheckoutService {
 
+    /**
+     * Checks out the code from the specified repository URL, branch, and commit SHA.
+     * @param repoUrl
+     * @param branch
+     * @param sha
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public Path checkout(String repoUrl, String branch, String sha)
             throws IOException, InterruptedException {
 
