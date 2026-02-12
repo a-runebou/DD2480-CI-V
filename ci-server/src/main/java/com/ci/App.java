@@ -2,6 +2,10 @@ package com.ci;
 
 import java.io.IOException;
 
+/**
+ * The App class serves as the entry point for the CI server application.
+ * It initializes and starts the HTTP server to listen for incoming requests.
+ */
 public class App {
     public static void main( String[] args ) {
         Server server = new Server();

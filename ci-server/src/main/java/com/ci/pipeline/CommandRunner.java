@@ -5,6 +5,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.Comparator;
 
+/**
+ * Responsible for running shell commands in the CI pipeline, such as compiling code and running tests.
+ * Also provides a utility method for deleting directories recursively.
+ */
 public class CommandRunner {
 
     public int run(Path cwd, String... cmd) throws IOException, InterruptedException {
