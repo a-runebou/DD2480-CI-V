@@ -3,13 +3,14 @@ package com.ci.pipeline;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Orchestrates the CI pipeline: checks out code, runs tests, and posts status updates.
- */
+
 import com.ci.DbHandler;
 import com.ci.checkout.GitCheckoutService;
 import com.ci.statuses.StatusPosterAdapter;
 
+/**
+ * Orchestrates the CI pipeline: checks out code, runs tests, and posts status updates.
+ */
 public class CIPipeline {
     private final GitCheckoutService checkoutService;
     private final CommandRunner runner;
@@ -49,7 +50,12 @@ public class CIPipeline {
     public void setDbHandler(DbHandler dbHandler) {
         this.dbHandler = dbHandler;
     }
-
+    /**
+     * Runs the CI pipeline for the specified repository URL, branch, and commit SHA.
+     * @param repoUrl
+     * @param branch
+     * @param sha
+     */
     public void run(String repoUrl, String branch, String sha) {
         System.out.println("[CI] START branch=" + branch + " sha=" + shortSha(sha));
 

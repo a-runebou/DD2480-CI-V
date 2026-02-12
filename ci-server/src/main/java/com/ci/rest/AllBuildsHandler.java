@@ -9,6 +9,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+/**
+ * The AllBuildsHandler class is responsible for handling HTTP GET requests to the /builds endpoint.
+ * It retrieves all build entries from the database and responds with a JSON array of these entries.
+ * If a request method other than GET is used, it responds with a 405 Method Not Allowed status code.
+ */
 public class AllBuildsHandler implements HttpHandler{
     private final static ObjectMapper objectMapper = new ObjectMapper();
     private final DbHandler dbHandler;
