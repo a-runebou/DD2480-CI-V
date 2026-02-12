@@ -21,6 +21,9 @@ import java.util.List;
 public class DbHandler {
     private String dbUrl = "jdbc:sqlite:builds.db";
 
+    /**
+     * Default constructor that initializes the database URL to "jdbc:sqlite:builds.db". If the "data" directory does not exist, it will be created.
+     */
     public DbHandler() {
         this("data/builds.db");
     }
