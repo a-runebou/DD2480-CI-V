@@ -45,6 +45,11 @@ public class DbHandler {
         this.dbUrl = "jdbc:sqlite:"+dbUrl;
     }
 
+    /**
+     * Establishes a connection to the database.
+     * @return a Connection object to the database
+     * @throws SQLException
+     */
     protected Connection getConnection() throws SQLException {
         return DriverManager.getConnection(dbUrl);
     }

@@ -11,6 +11,13 @@ import java.util.Comparator;
  * Also provides a utility method for deleting directories recursively.
  */
 public class CommandRunner {
+
+    /**
+     * A record to hold the result of a command execution, including the exit code and logs.
+     * 
+     * @param exitCode the exit code of the command
+     * @param logs the combined standard output and error logs from the command execution
+     */
     public record TestResult(int exitCode, String logs) {}
 
     /**
