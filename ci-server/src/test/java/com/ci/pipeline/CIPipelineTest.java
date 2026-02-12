@@ -1,18 +1,20 @@
 package com.ci.pipeline;
 
-import com.ci.checkout.GitCheckoutService;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.ci.DbHandler;
+import com.ci.checkout.GitCheckoutService;
 
 /**
  * Unit tests for CIPipeline using fake implementations to avoid real git clones and Maven runs.
@@ -22,12 +24,26 @@ public class CIPipelineTest {
     private RecordingStatusReporter statusReporter;
     private FakeCommandRunner commandRunner;
     private Path tempDir;
+    private String dbUrl;
+    private File tempDbFile;
+    private DbHandler dbHandler;
 
     @BeforeEach
-    void setUp(@TempDir Path tempDir) {
+    void setUp(@TempDir Path tempDir) throws IOException {
         this.tempDir = tempDir;
         this.statusReporter = new RecordingStatusReporter();
         this.commandRunner = new FakeCommandRunner();
+        this.tempDbFile = Files.createTempFile("testdb", ".db").toFile();
+        this.dbUrl = tempDbFile.getAbsolutePath();
+        this.dbHandler = new DbHandler(dbUrl);
+        dbHandler.createBuildTable();
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (tempDbFile != null && tempDbFile.exists()) {
+            tempDbFile.delete();
+        }
     }
 
     /**
@@ -38,6 +54,7 @@ public class CIPipelineTest {
         FakeGitCheckoutService checkoutService = new FakeGitCheckoutService(tempDir);
         commandRunner.setExitCode(0);
         CIPipeline pipeline = new CIPipeline(checkoutService, commandRunner, statusReporter);
+        pipeline.setDbHandler(dbHandler);
 
         pipeline.run("https://github.com/test/repo.git", "main", "abc1234");
 
@@ -54,6 +71,7 @@ public class CIPipelineTest {
         FakeGitCheckoutService checkoutService = new FakeGitCheckoutService(tempDir);
         commandRunner.setExitCode(1);
         CIPipeline pipeline = new CIPipeline(checkoutService, commandRunner, statusReporter);
+        pipeline.setDbHandler(dbHandler);
 
         pipeline.run("https://github.com/test/repo.git", "main", "abc1234");
 
@@ -69,6 +87,7 @@ public class CIPipelineTest {
     void exceptionPath_postsError() {
         FailingGitCheckoutService checkoutService = new FailingGitCheckoutService();
         CIPipeline pipeline = new CIPipeline(checkoutService, commandRunner, statusReporter);
+        pipeline.setDbHandler(dbHandler);
 
         pipeline.run("https://github.com/test/repo.git", "main", "abc1234");
 

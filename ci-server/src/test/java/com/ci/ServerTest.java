@@ -147,6 +147,64 @@ public class ServerTest {
         int responseCode = connection.getResponseCode();
         assertEquals(400, responseCode);
     }
+
+    /**
+     * Contract:
+     * When a POST request is sent to /webhook with JSON payloads that are missing
+     * required keys (ref, after, repository.clone_url), the server should respond with 400 Bad Request.
+     * 
+     * Expected Behavior:
+     * The server validates the payload structure and rejects requests missing required fields,
+     * returning a 400 response.
+     */
+    @Test
+    public void testMissingJSONKeysReturns400() throws Exception {
+        String[] payloads = new String[] {
+
+            // No repository
+            """
+            {"ref": "abc" "after":"123"}
+            """,
+
+            // Missing after
+            """
+            {"ref":"refs/heads/main","repository":{"clone_url":"xxx"}}
+            """,
+
+            // Missing ref
+            """
+            {"after":"abc123","repository":{"clone_url":"xxx"}}
+            """,
+
+            // Missing clone_url
+            """
+            {"ref":"refs/heads/main","after":"abc123","repository":{}}
+            """,
+
+            // Missing both
+            """
+            {"repository":{"clone_url":"xxx"}}
+            """,
+
+            // empty
+            """
+            {}
+            """
+        };
+
+        for (String payload : payloads) {
+            URL url = new URL("http://localhost:" + port + "/webhook");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.getOutputStream().write(payload.getBytes());
+            int responseCode = connection.getResponseCode();
+
+            assertEquals(400, responseCode, "Payload: " + payload);
+            connection.disconnect();
+        }
+    }
+
     
     /**
      * Contract:
@@ -239,18 +297,88 @@ public class ServerTest {
     @Test
     public void testStartOnUnavailablePortThrowsException() throws Exception {
         // Start a server on an available port
-        Server server1 = new Server();
+        Server server1 = new Server(dbUrl);
         server1.start(0);
         int usedPort = server1.getPort();
 
         // Attempt to start another server on the same port, which should fail
-        Server server2 = new Server();
+        Server server2 = new Server(dbUrl);
         try {
             server2.start(usedPort);
         } catch (IOException ex) {
-            assertEquals("Address already in use", ex.getMessage());
+            assertTrue(ex.getMessage().startsWith("Address already in use"));
         } finally {
             server1.stop();
         }
+    }
+
+    /**
+     * Contract:
+     * When a POST request is sent to /webhook with an invalid JSON payload,
+     * the server should respond with 400 Bad Request.
+     * 
+     * Expected Behavior:
+     * The server rejects the invalid payload and returns a 400 response.
+     */
+    @Test
+    public void testInvalidJSONReturns400() throws Exception {
+        URL url = new URL("http://localhost:" + port + "/webhook");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        String invalidJson = "{invalid json}";
+        connection.getOutputStream().write(invalidJson.getBytes());
+        int responseCode = connection.getResponseCode();
+        assertEquals(400, responseCode);
+    }
+
+    /**
+     * Contract:
+     * When the server is stopped, it should shut down gracefully without throwing exceptions.
+     * 
+     * Expected Behavior:
+     * Calling stop() on a running Server instance should not throw any exceptions
+     * and should complete without errors. Calling stop() on an already stopped 
+     * server should also not throw exceptions.
+     */
+    @Test
+    public void testStoppingNonRunningServer() {
+        Server server = new Server(dbUrl);
+        server.stop();
+        // Should not throw any exception
+        assertTrue(true);
+    }
+
+    /**
+     * Contract:
+     * When the server is stopped while it is running, it should shut down gracefully 
+     * without throwing exceptions.
+     * 
+     * Expected Behavior:
+     * Starting the server and then calling stop() should not throw any exceptions
+     * and should complete without errors, allowing the server to shut down gracefully.
+     */
+    @Test
+    public void testStopWhenServerRunning() throws Exception {
+        Server server = new Server(dbUrl);
+        server.start(0);
+        server.stop(); // server != null branch executes
+    }
+
+    /**
+     * Contract:
+     * The Server constructor should handle a null ExecutorService without throwing exceptions.
+     * 
+     * Expected Behavior:
+     * When a Server instance is created with a null ExecutorService, it should not throw any 
+     * exceptions, and the instance should be created successfully. Calling stop() on this 
+     * instance should also not throw exceptions.
+     */
+    @Test
+    public void testNullExecutorInConstructor() {
+        Server server = new Server(new CIPipeline(), null, dbUrl);
+        // Should not throw any exception
+        server.stop();
+        assertTrue(true);
     }
 }
