@@ -21,7 +21,6 @@ import com.sun.net.httpserver.HttpServer;
 public class Server {
     private HttpServer server;
     private final DbHandler dbHandler;
-    private static boolean DEBUG = true;
 
     private final ExecutorService exec;
     private final CIPipeline pipeline;
@@ -92,9 +91,7 @@ public class Server {
         this.server.start();
 
         // Debug information
-        if (DEBUG) {
-            System.out.println("Server started on port " + this.getPort());
-        }
+        System.out.println("Server started on port " + this.getPort());
     }
 
     /**
@@ -117,24 +114,18 @@ public class Server {
      * @throws IOException if an I/O error occurs.
      */
     public static void handleRequest(HttpExchange exchange, CIPipeline pipeline, ExecutorService exec) throws IOException {
-        if (DEBUG) {
-            System.out.println("Handling request...");
-        }
+        System.out.println("Handling request...");
         
         // Only accept POST requests
         if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
             // Process the webhook payload
-            if (DEBUG) {
-                System.out.println("Received POST request");
-            }
+            System.out.println("Received POST request");
 
             // Read the request body
             String body = new String(exchange.getRequestBody().readAllBytes());
 
             if (body.isBlank()) {
-                if (DEBUG) {
-                    System.out.println("Empty request body received");
-                }
+                System.out.println("Empty request body received");
                 String response = "Empty request body";
                 byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
                 exchange.sendResponseHeaders(400, responseBytes.length);
@@ -143,9 +134,7 @@ public class Server {
                 return;
             }
 
-            if (DEBUG) {
-                System.out.println("Request Body: " + body);
-            }
+            System.out.println("Request Body: " + body);
             
             // Parse JSON payload
             ObjectMapper objectMapper = new ObjectMapper();
@@ -153,9 +142,8 @@ public class Server {
             try {
                 json = objectMapper.readTree(body);
             } catch (IOException e) {
-                if (DEBUG) {
-                    System.out.println("Failed to parse JSON payload");
-                }
+                System.out.println("Failed to parse JSON payload");
+
                 String response = "Invalid JSON payload";
                 byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
                 exchange.sendResponseHeaders(400, responseBytes.length);
@@ -179,10 +167,9 @@ public class Server {
             String sha = json.get("after").asText();
             String branch = ref.replace("refs/heads/", "");
 
-            if (DEBUG) {
-                System.out.println("Branch: " + branch);
-                System.out.println("Commit SHA: " + sha);
-            }
+            System.out.println("Branch: " + branch);
+            System.out.println("Branch: " + branch);
+            System.out.println("Commit SHA: " + sha);
 
             // Get repo clone URL from payload
             JsonNode repoNode = json.get("repository");
